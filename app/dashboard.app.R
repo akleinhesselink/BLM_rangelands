@@ -10,8 +10,8 @@ library(shinydashboard)
 ##############
 ##############
 
-load('data/mapdata.rda')
-load('data/vegdata.rda')
+## load(data) # need to compile the data 
+
 source('functions.R')
 source('parameters.R')
 
@@ -88,7 +88,7 @@ server <- function(input, output) {
     choices <- c(unit = input$unit, 
                  type = input$type)
     
-    allotment_map(allotment_ctrs, allotment_shps, choices)
+    allotment_map(allotment_shps, choices)
     
   })
   

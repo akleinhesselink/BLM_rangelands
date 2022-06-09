@@ -89,7 +89,16 @@ old_dat <- old_dat %>%
           yhat = back_transform( yhat2, value2_att, log = T))
 
 
-tree_dat2 %>%   
+letter_lab <- 
+  data.frame( year = 1991, value = c(40,50,80,70,55,50,62,24), 
+               ecogroup = c( "AZ/NM Highlands", "E Cold Deserts", 
+                             "Forested Mts", 
+                             "Mediterranean California", 
+                             "N Great Plains", "S Great Plains", 
+                             "W Cold Deserts", "Warm Deserts"))  %>% 
+  mutate( lab = LETTERS[1:8])
+
+tree_quant_plot <- tree_dat2 %>%   
   ggplot( aes( x = year, y = value )) + 
   geom_point(alpha = 0.1) + 
   geom_line(data = yhats, aes( x = year, y = yhat, 
@@ -105,12 +114,18 @@ tree_dat2 %>%
                              box.padding = 0.05, 
                              min.segment.length = 2, 
                              show.legend = F) + 
+  geom_text( data = letter_lab, aes( label = lab), 
+             nudge_x = 0, nudge_y = 0, size = 3) + 
   scale_color_brewer(type = 'seq', palette = 'Spectral', guide  = guide_legend(reverse = T)  ) + 
   facet_wrap( ~ ecogroup, nrow = 4, ncol = 2, scales = 'free_y' )  + 
   scale_x_continuous(breaks = c(1995, 2005, 2015)) + 
   ylab('Tree Cover %') + 
-  theme( panel.grid = element_blank()) + 
-  ggsave(filename = 'output/figures/Fig_S3_Supp_TREE_quantreg.png', 
-         width = 8, height = 8, units ='in', dpi = 600)
+  xlab('Year') + 
+  theme_bw() + 
+  theme( panel.grid = element_blank())
+
+ggsave(tree_quant_plot, 
+       filename = 'output/figures/Fig_S3_Supp_TREE_quantreg.png', 
+         width = 6, height = 7, units ='in', dpi = 600)
 
 

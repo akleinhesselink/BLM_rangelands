@@ -42,23 +42,40 @@ annual_prod_dominance <- annual_data %>%
 annual_prod_dominance %>% 
   write_csv('output/tables/annual_prod_dominance.csv')
 
-annual_prod_dominance %>% 
+letter_lab <- 
+  expand.grid( decade = '1980s', perc_more_annuals = 105, 
+               ecogroup = c( "AZ/NM Highlands", "E Cold Deserts", 
+                             "Forested Mts", 
+                             "Mediterranean California", 
+                             "N Great Plains", "S Great Plains", 
+                             "W Cold Deserts", "Warm Deserts"))  %>% 
+  mutate( lab = LETTERS[1:8])
+
+
+ann_prod <- annual_prod_dominance %>% 
   filter( ecogroup != 'Marine West Coast Forest') %>% 
   mutate( perc_more_annuals = frac_more_annuals*100) %>% 
   mutate( 
     label = paste0( round( frac_more_annuals, 2)*100, '%', '(',`more annuals`,')')
   ) %>%
   ggplot( aes( x = decade, y = perc_more_annuals )) + 
-  facet_wrap( ~ ecogroup ) + 
+  geom_text( data = letter_lab, aes( label = lab), 
+             nudge_x = -0.4, nudge_y = 0.2, size = 3) + 
+  facet_wrap( ~ ecogroup , nrow = 4) + 
   geom_bar(stat = 'identity') + 
-  geom_text( aes( label = label), nudge_y = 10, size = 3) + 
+  geom_text( aes( label = label), nudge_y = 4, size = 2.5) + 
   ylab( 'Percent of Allotments') + 
   xlab( 'Decade') + 
   theme_bw() + 
   scale_y_continuous(labels = scales::percent_format(scale = 1)) + 
-  ggtitle('Annual Production > Perennial Production') + 
-  ggsave( 'output/figures/Fig_Supp_annual_production_gt_perennial_by_decade.png', 
-          height = 6, width = 8, units = 'in', dpi = 600)
+  ggtitle('Annual Production > Perennial Production')
+
+ggsave( ann_prod , 
+        filename = 'output/figures/Fig_Supp_annual_production_gt_perennial_by_decade.png', 
+          height = 8, width = 6, units = 'in', dpi = 600)
+
+
+
 
 # Annual Cover ---------------------------------------- 
 annual_cover_dominance <- annual_data %>% 
@@ -86,23 +103,32 @@ annual_cover_dominance <- annual_data %>%
 annual_cover_dominance %>% 
   write_csv('output/tables/annual_cover_dominance.csv')
 
-annual_cover_dominance %>% 
+ann_cover <- annual_cover_dominance %>% 
   filter( ecogroup != 'Marine West Coast Forest') %>% 
   mutate( 
     label = paste0( round( frac_more_annuals, 2)*100, '%', '(',`more annuals`,')')
   ) %>% 
   mutate( perc_more_annuals = frac_more_annuals*100 ) %>% 
   ggplot( aes( x = decade, y = perc_more_annuals )) + 
-  facet_wrap( ~ ecogroup ) + 
   geom_bar(stat = 'identity') + 
-  geom_text( aes( label = label ) , nudge_y = 10 , size = 3) + 
+  geom_text( data = letter_lab, aes( label = lab), 
+             nudge_x = -0.4, nudge_y = 0.2, size = 3) + 
+  facet_wrap( ~ ecogroup , nrow = 4) + 
+  geom_text( aes( label = label), nudge_y = 5, size = 2.5) + 
   ylab( 'Percent of Allotments') + 
   xlab( 'Decade') + 
   theme_bw() + 
   ggtitle('Annual Cover > Perennial Cover')  + 
-  scale_y_continuous(labels = scales::percent_format(scale = 1)) + 
-  ggsave( 'output/figures/Fig_Supp_annual_cover_gt_perennial_by_decade.png', 
-          height = 6, width = 8, units = 'in', dpi = 600)
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+
+ggsave(ann_cover , filename = 'output/figures/Fig_Supp_annual_cover_gt_perennial_by_decade.png', 
+          height = 8, width = 6, units = 'in', dpi = 600)
+
+annual_cover_dominance %>% 
+  filter(ecogroup != 'Mediterranean California') %>% 
+  group_by(decade ) %>% 
+  summarise( n = sum(n_total), `more annuals` = sum(`more annuals`)) %>% 
+  mutate( `more annuals`/n)
 
 # Trees ---------------------------------------------------
 tree_bins <-

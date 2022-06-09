@@ -65,10 +65,12 @@ cover_variance$unit <- 'Cover'
 agb_model_files <- dir(path = 'output', pattern = '.*_agb_trend_model.rds', full.names = T)
 agb_models <- lapply(agb_model_files, read_rds)
 types  <- c( str_extract( basename( agb_model_files), pattern = '[A-Z]+') )
-types <- factor(types, labels = c('Annual', 'Perennial'))
+types <- factor(types, labels = c('Annual', 'Herb', 'Perennial'))
 names( agb_models ) <- types 
 vc_agb <- lapply(agb_models, VarCorr )
 vc_agb <- lapply( vc_agb, data.frame)
+
+agb_models <- agb_models[c(1,3)] # drop herb 
 
 agb_att <- lapply( agb_models, function(x) attributes( x@frame$value2) )
 agb_year_att <- lapply( agb_models, function(x) attributes( x@frame$year2) )
@@ -118,8 +120,31 @@ final_variance_table <-
   mutate( isPix = ifelse(grp == 'Pixel', "A) Within Allotment/Pixel-scale", "B) Between Allotment (Random Effects)")) %>% 
   mutate( isPix = factor( isPix , levels = c('A) Within Allotment/Pixel-scale', 'B) Between Allotment (Random Effects)'), ordered = T))
 
+NewVarPlot <- final_variance_table %>% 
+  filter( type != "Herb") %>% 
+  group_by( type_unit ) %>% 
+  arrange( type_unit, desc(grp)) %>% 
+  mutate( perc_var = round( 100*var/sum(var) ) ) %>% 
+  mutate( bar_lab = paste0(perc_var, '%'), lab_y = cumsum( var ) - 0.5*var ) %>%  
+  ungroup() %>%
+  ggplot( aes( x = type_unit, y = var, fill = grp )) + 
+  geom_bar(stat = 'identity')  + 
+  geom_text( aes( label = bar_lab, y = lab_y), size = 3) + 
+  ylab( "Trend Variance") + 
+  theme_bw() + 
+  scale_fill_manual(values = var_cols, breaks = c('Allotment', 'Office', 'Pixel'), name = 'Scale') + 
+  theme(axis.title.x = element_blank(), 
+      axis.text.x = element_text( angle = -50, hjust = 0), 
+      strip.text = element_text(hjust = 0))  
 
-final_variance_table %>%
+NewVarPlot
+
+ggsave(NewVarPlot, 
+       filename = 'output/figures/Fig_5_trend_variance_barplot.png',
+       width = 6.5, height = 4, units = 'in', dpi = 600)
+
+
+ggVarplot <- final_variance_table %>%
   ggplot( aes( x = type_unit, y = var, fill = grp )) + 
   geom_bar(stat = 'identity')   + 
   facet_wrap( ~ isPix, ncol  = 2 ) + 
@@ -128,8 +153,12 @@ final_variance_table %>%
   scale_fill_manual(values = var_cols, breaks = c('Allotment', 'Office'), name = 'Scale') + 
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_text( angle = -50, hjust = 0), 
-        strip.text = element_text(hjust = 0)) + 
-  ggsave( filename = 'output/figures/Fig_S4_trend_variance.png',
+        strip.text = element_text(hjust = 0))  
+
+
+
+ggsave(ggVarplot, 
+       filename = 'output/figures/Fig_S4_trend_variance.png',
           width = 6.5, height = 4, units = 'in', dpi = 600)
 
 
@@ -138,7 +167,8 @@ final_variance_table %>%
   arrange( var ) %>% 
   mutate( order = row_number()) %>%
   arrange( type_unit, order ) %>% 
-  select( type_unit, grp, order , var ) %>% View 
+  select( type_unit, grp, order , var ) %>% 
+  write_csv('output/trend_variance_comparison.csv')
 
 
 

@@ -36,12 +36,12 @@ allotment_shapes_ecogroup <- allotment_shapes_ecogroup %>%
     ecogroup,
     labels = c(
       'AZ/NM Highlands',
-      'East Cold Deserts',
-      'Forested Mountains',
+      'E Cold Deserts',
+      'Forested Mts',
       'Mediterranean California',
-      'North Great Plains',
-      'South Great Plains',
-      'West Cold Deserts',
+      'N Great Plains',
+      'S Great Plains',
+      'W Cold Deserts',
       'Warm Deserts'
     )
   ))
@@ -72,25 +72,28 @@ state_layer <- state_layer %>%
 names( ecogroup_colors)[ order(names( ecogroup_colors)) ]  <- 
   c(
     'AZ/NM Highlands',
-    'East Cold Deserts',
-    'Forested Mountains',
+    'E Cold Deserts',
+    'Forested Mts',
     'Mediterranean California',
-    'North Great Plains',
-    'South Great Plains',
-    'West Cold Deserts',
+    'N Great Plains',
+    'S Great Plains',
+    'W Cold Deserts',
     'Warm Deserts'
     )
 
+display_proj <- st_crs( '+proj=laea +lat_0=40.00 +lon_0=-109.00 +x_0=0 +y_0=0')
 
 state_layer <- state_layer %>% 
-  st_transform(crs = 'epsg:4326')
+  st_transform(display_proj)
 
 allotment_shapes_ecogroup <- allotment_shapes_ecogroup %>% 
-  st_transform(crs = 'epsg:4326')
+  st_transform(display_proj)
 
 BLM_offices <- BLM_offices %>% 
-  st_transform(crs = 'epsg:4326')
+  st_transform(display_proj)
 
+BLM_districts <- BLM_districts %>% 
+  st_transform(display_proj)
 
 full_map <- 
   state_layer %>% 
@@ -103,27 +106,24 @@ full_map <-
     #         fill = NA, alpha = 0.9) +
     scale_color_manual(name = 'Ecoregion', values = ecogroup_colors) + 
     #geom_sf(data = BLM_districts, fill = NA, color = NA) + 
-    xlim( c(-126, -95)) + 
-    ylim( c(31.5, 48.5)) + 
+    #xlim( c(-126, -95)) + 
+    #ylim( c(31.5, 48.5)) + 
     geom_sf(data = BLM_offices %>% distinct(Shape), 
             fill = NA, size = 0.1, alpha = 0.5) + 
     geom_sf(fill = NA, size = 0.2, alpha = 0.5) + 
     theme( legend.position = c(0.9, 0.3), 
            legend.box.background = element_rect(color = 1, size = 0.2)) 
 
-
-full_map + 
+full_map %>% 
   ggsave( filename = 'output/figures/Fig_1_Ecoregion_Map.png',
           width = 10, height = 5.5, units = 'in', dpi = 400)
 
 
 # Ecoregion Map 
-
 west_cold_deserts_allots <- allotment_shapes %>% 
   filter( ecogroup == 'W Cold Deserts') %>%
   st_transform(crs = "EPSG:4326") 
 
-ecogroup_colors
 
 regional_map <- 
   state_layer %>% 

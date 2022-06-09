@@ -40,3 +40,23 @@ stopifnot( file.exists('data/RAP_EE_exports/allotment_production_by_year.csv'))
 stopifnot( file.exists('data/RAP_EE_exports/allotment_elevation.csv'))
 
 source('code/build_db/5_process_annual_data.R')
+
+readline( prompt = "Complete pixel-level sampling in GEE. Upload variation \n
+          in allotment trends and paired-pixel samples for calculating trend \n 
+          correlations.")
+
+stopifnot( file.exists('data/RAP_EE_exports/afg_bg_paired_samples.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/afg_pfg_paired_samples.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/afg_shr_paired_samples.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/pfg_bg_paired_samples.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/pfg_shr_paired_samples.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/shr_bg_paired_samples.csv'))
+
+stopifnot( file.exists('data/RAP_EE_exports/allotment_cover_trends.csv'))
+stopifnot( file.exists('data/RAP_EE_exports/allotment_production_trends.csv'))
+
+# check for data required for multi-scale figure 
+stopifnot( file.exists('data/spatial/COT_SG_Populations_2013/COT_SG_Populations_2013.shp'))
+stopifnot( file.exists('data/temp/example_allotment_cover.tif'))
+
+

@@ -85,5 +85,3 @@ read_csv('data/temp/allotment_info.csv') %>%
 
 
 
-all_rates <- read_csv('output/tables/field_office_rates.csv')
-

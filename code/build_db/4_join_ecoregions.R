@@ -151,4 +151,19 @@ state_bounds %>%
   write_rds(file = 'data/temp/western_states_outlines_shapefile.rds')
 
 
+# Add ecoregions to shapefile export
+st_read('data/temp/BLM_allotments_cleaned/allotments.shp') %>% 
+  left_join( 
+    (
+      read_csv('data/temp/allotment_info.csv') %>% 
+        select( uname, ecogroup)
+      ), by = 'uname') %>% 
+  st_write(dsn = 'data/temp/BLM_allotments_cleaned/allotments.shp', 
+           layer = 'allotments', append = F)
 
+library(sf)
+test <- st_read('data/temp/BLM_allotments_cleaned/allotments.shp')
+test %>% 
+  st_drop_geometry() %>% 
+  filter( ecogroup == 'Marine West Coast Forest') %>% 
+  summarise( sum(hectares))

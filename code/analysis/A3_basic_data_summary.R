@@ -39,3 +39,8 @@ allotments %>%
     mutate( Ecoregion = 'Total')) %>% 
   kableExtra::kable(digits = c(0,0, 0, 0,2,0,0,0,1,0)) %>%
   kableExtra::save_kable(file = 'output/tables/Allotment_stats.html')
+
+
+allotments %>% 
+  ungroup()  %>% 
+    summarise( mean(hectares), min(hectares), max(hectares))

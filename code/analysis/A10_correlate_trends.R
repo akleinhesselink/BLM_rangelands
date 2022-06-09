@@ -188,13 +188,22 @@ x <- x %>%
   filter( pval < 0.05) %>% 
   mutate( AFG = 0.2, value = 0.01) 
   
-afg_v_BG_PFG %>% 
+
+letter_lab <- 
+  expand.grid( AFG = 0, value = 1, 
+               type = c('Bare Ground Trend', 'Perennial Cover Trend') , 
+               scale = c('Ecogroup', 'Office', 'Allotment', 'Pixel')) %>% 
+  arrange( type ) %>%
+  mutate( lab = LETTERS[1:8])
+
+fig6 <- afg_v_BG_PFG %>% 
   ggplot( aes( x = AFG, y = value) ) + 
   facet_grid( type ~ scale, switch = 'y' ) + 
   geom_point(alpha = 0.5) + 
   geom_smooth( data = afg_v_BG_PFG %>% filter( dum) , se = F, method = 'lm') + 
   geom_text( data = x, 
              aes( label = label ), parse = T) + 
+  geom_text(data = letter_lab , aes( label = lab), size = 3)  + 
   theme_bw() + 
   xlab( 'Annual Cover Trend')  + 
   #scale_x_continuous(breaks = c( 0, 0.2, 0.4, 0.6, 0.8, 1) , labels = function(x) { sprintf( "%.1f" , x )})
@@ -202,9 +211,14 @@ afg_v_BG_PFG %>%
         strip.background.y = element_blank(), 
         axis.title.y = element_blank(), 
         axis.text = element_text( size = 7), 
-        strip.text.y = element_text( size = 10)) + 
-  ggsave( 'output/figures/Fig_6_trend_correlation.png', 
-          width = 7, height = 4, units = 'in', dpi = 600)
+        strip.text.y = element_text( size = 10)) 
+
+
+ggsave(fig6, filename = 'output/figures/Fig_6_trend_correlation.png', 
+       width = 7, height = 4, units = 'in', dpi = 600)
+
+
+
 
 
 ggsave(plot = grid.arrange( p1, p2, p3, p4, p5, p6, nrow = 3, ncol = 2), 
@@ -213,4 +227,23 @@ ggsave(plot = grid.arrange( p1, p2, p3, p4, p5, p6, nrow = 3, ncol = 2),
        height = 8, 
        units = 'in', 
        dpi = 600)
+
+
+
+a <- read_csv('app/data/allotment_info.csv')
+
+p2$data %>% filter( scale %in% c('Allotment')) %>% 
+  mutate( uname = as.numeric(Group)) %>%
+  left_join(a, by = 'uname') %>%
+  ggplot( aes( x = AFG, y = PFG )) + 
+  geom_point() + facet_wrap( ~ ecogroup )
+
+
+p2$data %>% filter( scale %in% c('Allotment')) %>% 
+  mutate( uname = as.numeric(Group)) %>%
+  left_join(a, by = 'uname') %>%
+  ggplot( aes( x = AFG, y = SHR )) + geom_point() + facet_wrap( ~ ecogroup )
+
+
+p2$data %>% filter( scale %in% c('Pixel'))
 

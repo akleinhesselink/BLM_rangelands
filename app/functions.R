@@ -102,13 +102,12 @@ empty_plot <- function(title = NULL) {
   
 }
 
-
-allotment_map <- function( ctrs, shps , choices ){ 
+allotment_map <- function(shps, choices ){ 
   
   trend_choice <- paste0( '`', paste( choices['type'], 
-                         choices['unit'], sep = '_'), '`')
+                         str_to_title(choices['unit']), 'Trend', sep = '_'), '`')
   
-  rng <- ctrs %>% 
+  rng <- shps %>% 
     pull(eval(parse( text = trend_choice))) %>% 
     range(na.rm = T)
   
@@ -125,9 +124,7 @@ allotment_map <- function( ctrs, shps , choices ){
       ), 
     'trend') 
   
-  print(legend_label)
-  
-  ctrs %>% 
+  shps %>% 
     leaflet(options = leafletOptions(minZoom = 4, maxZoom = 11)) %>%
     setView(center_ll[1], center_ll[2], zoom = 5) %>% 
     setMaxBounds( lng1 = bounds[1], 
@@ -135,16 +132,15 @@ allotment_map <- function( ctrs, shps , choices ){
                   lng2 = bounds[3], 
                   lat2 = bounds[4]) %>%
     addProviderTiles(providers$CartoDB.Positron) %>% 
-    addCircles(
+    addPolygons(
       layerId = ~ uname, 
       color = ~ pal( eval( parse( text = trend_choice))), 
-      weight = 4, 
+      weight = 1, 
       highlight = highlightOptions(
         fillColor = "Cyan",
         fillOpacity = 0.8,
         bringToFront = TRUE
       ),
-      group = "Centers",
       label = labels,
       labelOptions = labelOptions(
         style = list("font-weight" = "normal", "padding" = "5px 10px"),
@@ -156,28 +152,10 @@ allotment_map <- function( ctrs, shps , choices ){
               values = ~ eval( parse( text = trend_choice)),
               title = legend_label,
               labFormat = labelFormat(suffix = '%', digits = 2),
-              opacity = 0.9, na.label = 'Gray', decreasing = T) %>%
-    groupOptions(group = 'Centers', zoomLevels = 4:5) %>% 
-    groupOptions(group = 'Shapes', zoomLevels = 6:12) %>%
-    addPolygons( 
-       data = shps, 
-       layerId = ~uname, 
-       color = ~ pal( eval( parse( text = trend_choice))),       
-      highlight = highlightOptions(
-        fillColor = "Cyan",
-        fillOpacity = 0.9,
-        bringToFront = TRUE
-      ),
-      weight = 2,
-      group = "Shapes",
-      label = labels,
-      labelOptions = labelOptions(
-        style = list("font-weight" = "normal", "padding" = "5px 10px"),
-        textsize = "15px",
-        direction = "auto"
-      ))
+              opacity = 0.9, na.label = 'Gray', decreasing = T)
 
 }
+
 
 add_trend_layer <- function(obj, type, unit = 'cover', ... ){ 
   
