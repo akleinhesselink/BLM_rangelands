@@ -1,7 +1,11 @@
-.Rproj.user
-.Rhistory
-.RData
-.Ruserdata
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
 *.rda
 *.rds
-
+*.tiff
+*.tif
+*.png
+*.pdf
+*.jpeg
