@@ -167,5 +167,3 @@ t %>%
   mutate( GrowthHabitSub = "TREE") %>%
   select( ecogroup, freq_rank, SCIENTIFIC, exoticUS, GrowthHabitSub, allotment_freq , avg_cover) %>%
   write_csv('output/tables/top3_trees.csv')
-
-t  %>% 

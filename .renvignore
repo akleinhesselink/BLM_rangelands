@@ -1,0 +1,8 @@
+
+data/
+app/
+output/
+
+!code/build_db/*.R
+!code/analysis/*.R
+
