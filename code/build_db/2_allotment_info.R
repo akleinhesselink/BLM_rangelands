@@ -8,16 +8,6 @@ if(!file.exists('data/RAP_EE_exports/ownership_area_by_allotment.csv')){
   Complete Ownership Analysis in GEE first!")
 }
 
-
-climate_regions <- list(
-  NW = c('OR', 'WA', 'ID'), 
-  NR = c('MT', 'WY'), 
-  SW = c('UT', 'CO', 'NM', 'AZ'), 
-  W = c('CA', 'NV') )
-
-climate_regions <- stack(climate_regions ) %>% 
-  rename( 'climate_region' = ind, 'admin_st' = values  )
-
 allotment_info <- 
   read_csv(file = 'data/temp/allotment_info.csv') %>% 
   mutate( hectares = as.numeric(hectares))
@@ -43,17 +33,15 @@ allotment_ownership <-
   select( uname, simple_class, hectares ) %>% 
   group_by( uname, simple_class ) %>% 
   summarise( hectares = sum(hectares)) %>%
-  spread( simple_class, hectares )
+  spread( simple_class, hectares ) %>% 
+  rowwise() %>% 
+  mutate( total_unmasked = Other + Private + BLM) 
 
 allotment_info <- 
   allotment_info %>% 
-  select( uname, allot_no, allot_name, 
-                           last_date, area, hectares, 
-                           adm_unit_cd, admin_st, admu_name,
-                           parent_cd, parent_name, lon, lat) %>% 
-  left_join( climate_regions) %>% 
-  left_join( allotment_ownership)
-
+  left_join( allotment_ownership) %>% 
+  mutate( total = hectares ) %>% 
+  mutate( masked = total - total_unmasked )
 
 allotment_info %>% 
   write_csv('data/temp/allotment_info.csv')

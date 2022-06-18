@@ -52,6 +52,10 @@ allotments <- allotments %>%
 
 # Group by allot number and name 
 # assign unique ID
+if(!dir.exists('data/temp/allotments/')){ 
+  dir.create('data/temp/allotments/') 
+}
+
 st_write( allotments %>% select( ID, last_edited_date, ALLOT_NAME_new, ST_ALLOT_new, ADMIN_ST, ADM_OFC_CD, ADM_UNIT_CD) , 
           dsn = 'data/temp/allotments/step_one.shp', 
           layer = 'step_one', append = F)
@@ -78,12 +82,14 @@ mdate_admin_boundaries <- date( mdate_admin_boundaries)
 
 districts <- st_read( 'data/spatial/BLM_National_Administrative_Units/admu.gdb/', 
                       layer = 'blm_natl_admu_dist_poly_webpub') %>% 
+  filter( ADMIN_ST != "AK") %>% 
   st_cast('MULTIPOLYGON') %>% 
   st_make_valid()  %>% 
   st_transform( crs = 'epsg:5070')
 
 offices <- st_read('data/spatial/BLM_National_Administrative_Units/admu.gdb/', 
                    layer = 'blm_natl_admu_field_poly_webpub') %>%  
+  filter( ADMIN_ST != "AK") %>% 
   st_cast('MULTIPOLYGON') %>% 
   st_make_valid() %>% 
   st_transform( crs = 'epsg:5070')
@@ -131,9 +137,15 @@ offices_fix_names <-
   group_by(ADM_UNIT_CD, ADMU_NAME , PARENT_CD, PARENT_NAME, ADMIN_ST) %>% 
   summarise( Shape = st_union( Shape))
 
-offices_fix_names %>% 
+if(!dir.exists('data/temp/BLM_field_offices_cleaned/')){ 
+  dir.create('data/temp/BLM_field_offices_cleaned/') 
+}
+
+offices_fix_names %>%  
+  filter( ADMIN_ST!="AK") %>% 
   st_cast('MULTIPOLYGON') %>% 
-  st_write('data/temp/BLM_field_offices_cleaned/field_offices.shp', append = F)
+  st_write('data/temp/BLM_field_offices_cleaned/field_offices.shp', 
+           layer = 'field_offices', append = F)
 
 office_info <- offices_fix_names %>% st_drop_geometry()
 
@@ -176,6 +188,14 @@ allotments_clean <- allotments_clean %>%
   filter( hectares > 1) %>% 
   arrange(ID) %>% 
   mutate( uname = row_number())
+
+
+offices_fix_names %>% 
+  st_cast( 'POLYGON') %>% 
+  st_make_valid() %>% 
+  st_write('data/temp/BLM_field_offices_cleaned/field_offices.shp', append = F, 
+           layer = 'offices')
+
 
 # Join RAS data 
 RAS_info <- read_csv('data/RAS_data/Allotment Information Report-All Allotments.csv') %>% 
@@ -279,10 +299,27 @@ allotments_clean <-
   st_make_valid() %>% 
   select( uname, ALLOT_NAME:NA_L1NAME)
 
-allotments_clean   %>% 
+allotments_clean %>% 
   st_drop_geometry() %>% 
   write_csv('data/temp/allotment_info.csv')
 
 allotments_clean %>% 
   st_write( 'data/temp/allotments/allotments_clean.shp', 
             layer = 'allotments_clean', append = F)
+
+
+# Save ecoregions 
+EG <- ER %>% 
+  left_join( allotment_ecoregions, by = 'US_L3CODE') %>%
+  filter( !is.na(ecoregion )) %>% 
+  select( ecoregion, geometry) %>%
+  st_simplify(preserveTopology = T, dTolerance = 500) %>% 
+  st_make_valid() %>% 
+  group_by( ecoregion) %>%
+  summarise( geometry = st_union( geometry )) %>%
+  st_make_valid()
+
+EG %>%
+  write_rds(file = 'data/temp/simplified_ecoregion_shapefile.rds')
+
+
