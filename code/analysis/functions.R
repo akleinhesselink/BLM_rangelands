@@ -54,16 +54,16 @@ plot_single_allotment_trends <- function( dataset, my_colors ){
 }
 
 
-ecogroup_trends_as_df <- function(trend_model, type){ 
+ecoregion_trends_as_df <- function(trend_model, type){ 
   
-  trends <- emmeans::emtrends(trend_model, ~ ecogroup, var = 'year2') %>% 
+  trends <- emmeans::emtrends(trend_model, ~ ecoregion, var = 'year2') %>% 
     data.frame(type = type)
 }
 
-plot_ecogroup_trend_coefficients <- function( trend_summary, my_colors ){ 
+plot_ecoregion_trend_coefficients <- function( trend_summary, my_colors ){ 
   
   trend_summary %>%
-    ggplot(aes( x = ecogroup, color = type, 
+    ggplot(aes( x = ecoregion, color = type, 
                 y = year2.trend, ymin = asymp.LCL, ymax = asymp.UCL )) + 
     geom_point(position = position_dodge(width = 1)) + 
     geom_errorbar(position = position_dodge( width = 1)) + 
@@ -76,7 +76,7 @@ plot_ecogroup_trend_coefficients <- function( trend_summary, my_colors ){
 }
 
 plot_trend_coefficients <- function(beta_table, my_colors) { 
-  # beta_table = table of trend coefficients for each ecogroup 
+  # beta_table = table of trend coefficients for each ecoregion 
   beta_table %>% 
     ggplot( aes( x = type, 
                  y = year2.trend, 
@@ -86,7 +86,7 @@ plot_trend_coefficients <- function(beta_table, my_colors) {
     geom_point() + 
     geom_errorbar() + 
     geom_hline(aes(yintercept = 0 ), linetype = 2) + 
-    facet_grid( ~ ecogroup ) + 
+    facet_grid( ~ ecoregion ) + 
     scale_color_manual(name = 'Functional Type', 
                        values = my_colors) + 
     scale_y_continuous(name = 'Annual Rate') + 
@@ -103,7 +103,7 @@ plot_trend_coefficients_vertical <- function(my_trend_table, my_colors ) {
     geom_vline( aes( xintercept = 0 ), linetype = 2, alpha = 0.5) + 
     geom_point() + 
     geom_errorbar(aes( xmin = asymp.LCL, xmax = asymp.UCL)) + 
-    facet_grid( ecogroup ~ . , switch = 'y') + 
+    facet_grid( ecoregion ~ . , switch = 'y') + 
     scale_x_continuous(name = 'Trend Coefficient') + 
     scale_color_manual(values = my_colors) + 
     theme_bw() + 
@@ -115,15 +115,15 @@ plot_trend_coefficients_vertical <- function(my_trend_table, my_colors ) {
 }
 
 # Functions for summarizing trends at the Ecogroup and BLM Admin Level
-get_ecogroup_trends <- function( model ){ 
+get_ecoregion_trends <- function( model ){ 
   
-  fixeffects <- emtrends(model, ~ ecogroup, 'year2') %>% 
+  fixeffects <- emtrends(model, ~ ecoregion, 'year2') %>% 
     as.data.frame()
   
-  ecogroup_effect <- fixeffects$year2.trend
-  names(ecogroup_effect) <-  c( str_trim( fixeffects$ecogroup ) )
+  ecoregion_effect <- fixeffects$year2.trend
+  names(ecoregion_effect) <-  c( str_trim( fixeffects$ecoregion ) )
   
-  return( ecogroup_effect ) 
+  return( ecoregion_effect ) 
 } 
 
 
@@ -132,7 +132,7 @@ get_blm_random_effects <- function( model ) {
   re <- ranef(model)
   
   #state <- re$admin_st
-  office <- re$`ecogroup:office_label`
+  office <- re$`ecoregion:OFFICE`
   allotment <- re$uname
   
   out <- list(office, allotment ) 
@@ -151,21 +151,22 @@ get_blm_random_effects <- function( model ) {
 
 
 
-blm_trend_summary <- function( my_data, ecogroup_trends, group_trends ){ 
+blm_trend_summary <- function( my_data, ecoregion_trends, group_trends ){ 
   
   if( all( 
     !is.null( nrow( group_trends$allotment) ), 
     !is.null( nrow( group_trends$office)))){ 
     my_data %>% 
-      distinct(ecogroup, office_label, uname) %>%
-      mutate( office_label = paste0(ecogroup, ':', office_label)) %>% 
-      mutate( ecogroup_trend = ecogroup_trends[ecogroup]) %>%
+      ungroup() %>% 
+      distinct(ecoregion, OFFICE, uname) %>%
+      mutate( office_label = paste0(ecoregion, ':', OFFICE)) %>% 
+      mutate( ecoregion_trend = ecoregion_trends[ecoregion]) %>%
       left_join( group_trends$office, by = 'office_label') %>% 
       left_join( group_trends$allotment, by = 'uname') %>%
-      dplyr::select( uname, ecogroup, office_label, 
-                     ecogroup_trend, office_trend, allot_trend ) %>%
+      dplyr::select( uname, ecoregion, office_label, 
+                     ecoregion_trend, office_trend, allot_trend ) %>%
       rowwise() %>% 
-      mutate( full_trend = ecogroup_trend + office_trend + allot_trend )
+      mutate( full_trend = ecoregion_trend + office_trend + allot_trend )
   }
   
 }
@@ -199,10 +200,10 @@ scale_comparison_df <- function( x ) {
     ) %>% 
     bind_rows(
       x %>% 
-        distinct(type, ecogroup, ecogroup_trend) %>%
-        pivot_wider(names_from = type, values_from = ecogroup_trend ) %>% 
+        distinct(type, ecoregion, ecoregion_trend) %>%
+        pivot_wider(names_from = type, values_from = ecoregion_trend ) %>% 
         mutate( scale = 'Ecoregion') %>% 
-        rename( label = ecogroup)
+        rename( label = ecoregion)
     ) %>% 
     bind_rows(
       x %>% 
@@ -231,8 +232,8 @@ make_corplot_by_scale <- function( x, types = c('AFG', 'BG') ){
   correlations <- 
     x %>% 
     filter(type %in% types) %>% 
-    select(ecogroup, office_label, uname, type, allot_trend, 
-           office_trend, ecogroup_trend, full_trend )
+    select(ecoregion, office_label, uname, type, allot_trend, 
+           office_trend, ecoregion_trend, full_trend )
   
   scale_comparison <- scale_comparison_df(correlations)
   scale_rhos <- get_rhos(scale_comparison, vars = types)
@@ -252,21 +253,21 @@ make_corplot_by_scale <- function( x, types = c('AFG', 'BG') ){
 }
 
 
-ecogroup_detail_plot <- function( x, 
+ecoregion_detail_plot <- function( x, 
                                   sel_type = 'Bare', 
-                                  sel_ecogroup = 'Warm Deserts', 
+                                  sel_ecoregion = 'Warm Deserts', 
                                   my_colors = 'black'){ 
   
   
   title <- paste0(  paste( sel_type, sep = '&' ), 'Cover: ', 
-                   paste( sel_ecogroup))   
+                   paste( sel_ecoregion))   
   
   
   if(length(sel_type) > 1 ){   
     
   gg_out <- x %>% 
       filter( type %in% sel_type, 
-              ecogroup == sel_ecogroup ) %>% 
+              ecoregion == sel_ecoregion ) %>% 
       ggplot( aes( x = year, y = value, color = type )) + 
       geom_line(size = 0.2, alpha = 0.5, aes( group = paste(uname, type))) + 
       scale_y_log10(name = 'Cover (%)') + 
@@ -277,7 +278,7 @@ ecogroup_detail_plot <- function( x,
     
   }else if( length(sel_type) == 1 ){
   gg_out <- x %>% 
-      filter( type == sel_type, ecogroup == sel_ecogroup ) %>% 
+      filter( type == sel_type, ecoregion == sel_ecoregion ) %>% 
       ggplot( aes( x = year, y = value, group = uname)) + 
       geom_line(size = 0.2, alpha = 0.5) + 
       scale_y_log10(name = 'Cover (%)') + 

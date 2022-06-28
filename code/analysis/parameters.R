@@ -49,11 +49,11 @@ WESTERN_STATES <- c('AZ',
                     'WA',
                     'WY')
 
-ecogroup_colors <- RColorBrewer::brewer.pal(n = 8, 'Set2')
+ecoregion_colors <- RColorBrewer::brewer.pal(n = 8, 'Set2')
 
-ecogroup_colors
+ecoregion_colors
 
-names(ecogroup_colors) <- c(
+names(ecoregion_colors) <- c(
   'W Cold Deserts', 
   'E Cold Deserts',
   'Forested Mts', 
@@ -64,12 +64,12 @@ names(ecogroup_colors) <- c(
   'Warm Deserts'
 )
 #colors()
-ecogroup_colors['Mediterranean California']  <- 'firebrick2'
-ecogroup_colors['Forested Mts']  <- 'cornflowerblue'
-ecogroup_colors['Warm Deserts']  <- 'slategray'
+ecoregion_colors['Mediterranean California']  <- 'firebrick2'
+ecoregion_colors['Forested Mts']  <- 'cornflowerblue'
+ecoregion_colors['Warm Deserts']  <- 'slategray'
 
 # For relabeling figures with shorter labels
-ecogroup_labels = c(
+ecoregion_labels = c(
   'AZ/NM\nHighlands',
   'E Cold Deserts',
   'Forested Mts',

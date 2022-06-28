@@ -1,3 +1,4 @@
+rm(list =ls())
 library(tidyverse)
 
 setwd(dir = '~/Dropbox/projects/BLM_rangeland_trends/data/RAP_EE_exports/')
@@ -12,6 +13,25 @@ prod_old <- read_csv('allotment_production_by_year.csv') %>%
   filter( year == '1991')
 prod_new <- read_csv('~/Downloads/drive-download-20220609T013346Z-001/allotment_production_by_year.csv')
 
+coverV3 <- read_csv('~/Downloads/allotment_cover_by_year_V3.csv') %>% 
+  left_join(read_csv('../temp/allotment_info.csv'))
+
+coverV3
+load('../../data/analysis_data/cover.rda')
+
+oldCover <- cover$AFGC %>% 
+  filter( year == 1991)
+newCover <- coverV3 %>% filter( year == 1991)
+
+oldCover %>% 
+  group_by( admin_st, type , year  ) %>% 
+  summarise( value = mean( value )) %>% 
+  left_join(
+    newCover %>% 
+      filter( AFG >= 0.25) %>% 
+      group_by( admin_st, year ) %>% 
+      summarise( value  = mean( AFG , na.rm = T)), 
+    by = c('admin_st', 'year'))
 
 cover_old %>% 
   left_join(cover_noMask, by = c('year', 'uname'))  %>% 
