@@ -1,7 +1,6 @@
 rm(list = ls())
 library(lme4)
 library(tidyverse)
-library(papeR)
 library(knitr)
 library(kableExtra)
 
@@ -49,7 +48,7 @@ for( i in 1:length(model_files) ) {
 }
 
 # Print out Biomass models:
-model_files <- dir('output', pattern = 'agb_trend_model.rds', full.names = T)
+model_files <- dir('output', pattern = 'NPP_trend_model.rds', full.names = T)
 model_type <- str_extract( basename(model_files), '[A-Za-z]+')
 
 for( i in 1:length(model_files) ) { 

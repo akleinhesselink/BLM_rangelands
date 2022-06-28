@@ -223,8 +223,10 @@ trend_variance_table <-
   trend_variance_table %>% 
   mutate( scale = factor(scale, levels = c('office', 'allotment', 'pixel'), ordered = T))
 
+
 varplot <- 
   trend_variance_table %>% 
+  mutate( type_label = str_replace_all(type_label, c('AFG' = 'Annual', 'PFG' = 'Perennial'))) %>% 
   filter( extraction_number == 4) %>% 
   ggplot(aes( x = type_label, y = vcov, fill = scale )) + 
   geom_bar(stat = 'identity')  + 
@@ -236,11 +238,41 @@ varplot <-
         axis.text.x = element_text( angle = -50, hjust = 0), 
         strip.text = element_text(hjust = 0)) 
 
-
-
 ggsave( varplot, 
-        filename = paste0( 'output/figures/scale_variance_plot_extraction', extraction_number, '.png'), 
+        filename = 'output/figures/Fig6_scale_variance_plot.png', 
         width = 6.5, 
         height = 4, 
         units = 'in', dpi = 600
 )
+
+
+# afg_m <- read_rds('data/temp/afg_pixel_trends_model_extraction_n4.rds')
+# 
+# afg_m2 <- update( afg_m, . ~ . - (t|pixel))
+# afg_m3 <- update( afg_m2, . ~ . - (t|uname))
+# afg_m4 <- lm(data = afg_m3@frame, value ~ t*ecoregion)
+# 
+# VarExp <- rbind(
+#   MuMIn::r.squaredGLMM(afg_m), 
+#   MuMIn::r.squaredGLMM(afg_m2), 
+#   MuMIn::r.squaredGLMM(afg_m3), 
+#   MuMIn::r.squaredGLMM(afg_m4)
+# ) 
+# 
+# VarExp %>% 
+#   data.frame() %>% 
+#   mutate( model = c('m1', 'm2', 'm3', 'm4')) %>%
+#   select( - R2m) %>% 
+#   pivot_wider( names_from = model, values_from = R2c) %>% 
+#   mutate( m1vexp = (m1 - m2)/m1, 
+#           m2vexp = (m2 - m3)/m1, 
+#           m3vexp = (m3 - m4)/m1)
+# 
+# VarExp %>% 
+#   data.frame() %>% 
+#   mutate( model = c('m1', 'm2', 'm3', 'm4')) %>%
+#   select( - R2m) %>% 
+#   pivot_wider( names_from = model, values_from = R2c) %>% 
+#   mutate( m1vexp = (m1 - m2)/m1, 
+#           m2vexp = (m2 - m3)/m1, 
+#           m3vexp = (m3 - m4)/m1)

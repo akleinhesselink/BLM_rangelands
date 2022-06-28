@@ -6,11 +6,8 @@ source('code/analysis/parameters.R')
 source('code/analysis/functions.R')
 
 tree_model <- read_rds('output/TREE_cover_trend_model.rds')
-annual_data <- read_rds('data/temp/annual_data.rds')
-
-shps <- sf::read_sf( 'data/temp/cover_rates/allotments_with_rates.shp')
-allotments <- shps %>% 
-  st_drop_geometry()
+annual_data <- read_csv('data/temp/annual_data.csv')
+allotments <- read_csv('data/temp/allotment_info.csv')
 
 annual_data <- annual_data %>% 
   left_join(allotments, by = 'uname')
@@ -18,33 +15,64 @@ annual_data <- annual_data %>%
 tree_data <- annual_data %>% 
   filter( year > 1990 ) %>% 
   filter( !is.na(value)) %>% 
-  filter( ecogroup != "Marine West Coast Forest") %>% 
-  rename( 'type' = name) %>% 
-  filter( unit == 'cover', type == 'TREE')
+  filter( ecoregion != "Marine West Coast Forest") %>% 
+  filter( unit == 'cover', name == 'TRE')
 
 tree_data <- tree_data %>%
-  split( ., .$ecogroup)
+  split( ., .$ecoregion)
 
 out <- tree_data %>% 
   lapply(. , . %>% 
            arrange(uname, year) %>% 
            #filter( row_number( ) < 240 ) %>%
-           group_by(ecogroup, uname) %>% 
+           group_by(ecoregion, uname) %>% 
            summarise( x = list( ts(value) )) %>% 
            rowwise() %>% 
-           summarise( ecogroup = ecogroup,  uname = uname, res = list( mk.test(unlist(x,recursive = T)))))
+           summarise( ecoregion = ecoregion,  uname = uname, res = list( mk.test(unlist(x,recursive = T)))))
 
-do.call(rbind, out ) %>% 
+ecoregion_summary <- 
+  do.call(rbind, out ) %>% 
   rowwise() %>% 
+  left_join(allotments, by = c('ecoregion', 'uname')) %>% 
   mutate( significant = res$p.value < 0.05 , stat = res$statistic, est = res$estimates[1]) %>% 
-  group_by( ecogroup ) %>% 
+  group_by( ecoregion ) %>% 
   summarise( n = n() , 
              increase = sum( significant & stat > 0), 
              decrease = sum( significant & stat < 0), 
-             not_significant = sum( !significant)) %>% 
+             not_significant = sum( !significant), 
+             hectares_of_increasing_allotments = sum( hectares[significant & stat > 0]), 
+             hectares_of_decreasing_allotments = sum( hectares[significant & stat < 0]), 
+             hectares_of_not_signif_allotments = sum(hectares[!significant])) %>% 
+  mutate( hectares_of_decreasing_allotments = round( hectares_of_decreasing_allotments), 
+          hectares_of_increasing_allotments = round( hectares_of_increasing_allotments), 
+          hectares_of_not_signif_allotments = round(hectares_of_not_signif_allotments)) %>% 
   mutate( fraction_increase = round( increase/n, 2), 
           fraction_decrease = round( decrease/n, 2), 
-          fraction_ns = round( not_significant/n, 2)) %>% 
-  write_csv('output/tables/non_parametric_tree_cover_incresases.csv')
+          fraction_ns = round( not_significant/n, 2))
 
+
+Total_summary <- 
+  ecoregion_summary %>% 
+  bind_rows(
+    ecoregion_summary %>% 
+      summarise_at(.vars = c("n", "increase", "decrease",
+                             "not_significant", "hectares_of_increasing_allotments", 
+                             "hectares_of_decreasing_allotments",
+                             "hectares_of_not_signif_allotments"), .funs = sum) %>% 
+      mutate( hectares_of_decreasing_allotments = round( hectares_of_decreasing_allotments), 
+              hectares_of_increasing_allotments = round( hectares_of_increasing_allotments), 
+              hectares_of_not_signif_allotments = round(hectares_of_not_signif_allotments)) %>%
+      mutate( fraction_increase = round( increase/n, 2), 
+              fraction_decrease = round( decrease/n, 2), 
+              fraction_ns = round( not_significant/n, 2)) %>% 
+      mutate( ecoregion = "TOTAL")
+  )
+
+
+Total_summary %>% 
+  mutate( increase_new = paste0( 100*(fraction_increase), '% (', increase, '/', n, ')') ) %>% 
+  mutate( decrease_new = paste0( 100*(fraction_decrease), '% (', decrease, '/', n, ')')) %>% 
+  mutate( no_change_new = paste0( 100*(fraction_ns), '% (', not_significant, '/', n, ')')) %>% 
+  select( ecoregion, increase_new, decrease_new, no_change_new, hectares_of_increasing_allotments, hectares_of_decreasing_allotments, hectares_of_not_signif_allotments) %>% 
+  write_csv('output/tables/non_parametric_tree_cover_increases.csv')
 

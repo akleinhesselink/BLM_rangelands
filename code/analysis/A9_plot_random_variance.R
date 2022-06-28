@@ -4,7 +4,6 @@ library(tidyverse)
 library(lme4)
 library(emmeans)
 library(gridExtra )
-library(ggpubr)
 require(kableExtra)
 
 source('code/analysis/functions.R')
@@ -62,35 +61,33 @@ cover_variance <- do.call( bind_rows, vc )
 cover_variance$unit <- 'Cover'
 
 # Production Variance 
-agb_model_files <- dir(path = 'output', pattern = '.*_agb_trend_model.rds', full.names = T)
-agb_models <- lapply(agb_model_files, read_rds)
-types  <- c( str_extract( basename( agb_model_files), pattern = '[A-Z]+') )
-types <- factor(types, labels = c('Annual', 'Herb', 'Perennial'))
-names( agb_models ) <- types 
-vc_agb <- lapply(agb_models, VarCorr )
-vc_agb <- lapply( vc_agb, data.frame)
+npp_model_files <- dir(path = 'output', pattern = '.*_NPP_trend_model.rds', full.names = T)
+npp_models <- lapply(npp_model_files, read_rds)
+types  <- c( str_extract( basename( npp_model_files), pattern = '[A-Z]+') )
+types <- factor(types, labels = c('Annual', 'Perennial'))
+names( npp_models ) <- types 
+vc_npp <- lapply(npp_models, VarCorr )
+vc_npp <- lapply( vc_npp, data.frame)
 
-agb_models <- agb_models[c(1,3)] # drop herb 
+npp_att <- lapply( npp_models, function(x) attributes( x@frame$value2) )
+npp_year_att <- lapply( npp_models, function(x) attributes( x@frame$year2) )
 
-agb_att <- lapply( agb_models, function(x) attributes( x@frame$value2) )
-agb_year_att <- lapply( agb_models, function(x) attributes( x@frame$year2) )
-
-vc <- mapply(x = types, y = vc_agb, 
+vc <- mapply(x = types, y = vc_npp, 
              function(x, y) {y$type <- x; return(y)}, SIMPLIFY = F)
 
-agb_variance <- do.call( bind_rows, vc )
-agb_variance$unit <- 'Production'
+npp_variance <- do.call( bind_rows, vc )
+npp_variance$unit <- 'Production'
 
 # Now back transform sd into units of log cover/log production per year
 # trend_bt = trend_scaled*log_y_sd/year_sd 
-trend_scales <- read_csv('data/temp/trend_scales.csv') # Output from script A8. 
+trend_scales <- read_csv('data/temp/trend_scales.csv') # Output from script A6. 
 
 trend_scales <- trend_scales %>% 
-  mutate( unit = ifelse(unit == 'AGB', 'Production', unit ))
+  mutate( unit = ifelse(unit == 'NPP', 'Production', unit ))
 
 all_random_effects <- bind_rows(
   cover_variance, 
-  agb_variance ) %>% 
+  npp_variance ) %>% 
   left_join(trend_scales ) %>% 
   filter( is.na(var2)) %>% 
   mutate( var1 = replace_na(var1, replace = '(Intercept)'))  %>% 

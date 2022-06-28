@@ -3,14 +3,14 @@ library(tidyverse)
 library(sf)
 library(lubridate)
 
-
-spp_attributes <- read_csv('data/AIM_species_data/CASI_attributed_PJA5May22s.csv')
+spp_attributes <- read_csv('data/AIM/AIM_species_data/CASI_attributed_PJA5May22s.csv')
 spp_attributes <- spp_attributes %>% 
   mutate( order = row_number() )  %>% 
   filter(!str_detect( SCIENTIFIC , '=>')) 
 
-allotment_shapes <- read_sf('data/temp/cover_rates/allotments_with_rates.shp')
-AIM_species_raw <- read_csv('data/AIM_species_data/BLM_species_cover_2022-05-07_AK_edit.csv')
+
+allotment_shapes <- read_sf('data/temp/allotments/allotments_with_cover_trends.shp')
+AIM_species_raw <- read_csv('data/AIM/AIM_species_data/BLM_species_cover_2022-05-07_AK_edit.csv')
 AIM_plots <- read_sf('data/temp/AIM_plots_May17/aim_plots.shp')
 AIM_LMF <- read_sf( 'data/temp/AIM_LMF_plots_May17/AIM_LMF_plots.shp')
 
@@ -72,7 +72,6 @@ AIM_species_allotments <-
   st_transform( crs = st_crs( allotment_shapes )) %>% 
   st_join( allotment_shapes, join = st_within ) 
 
-
 AIM_species_allotments %>% 
   st_drop_geometry() %>% 
   filter( !is.na(uname)) %>% 
@@ -94,28 +93,31 @@ AIM_species_allotments %>%
   mutate( loc = paste( Latitude_NAD83, Longitude_NAD83)) %>% 
   summarise( n_distinct(loc))
 
-
 allotment_veg <- 
   AIM_species_allotments %>%
   st_drop_geometry() %>% 
   filter(!is.na(uname)) %>% 
   group_by( uname ) %>% 
   mutate( nPrimaryKeys = n_distinct(PrimaryKey)) %>%
-  group_by( ecogroup, uname, Species, nPrimaryKeys) %>%
+  group_by( ecoregn, uname, Species, nPrimaryKeys) %>%
   summarise( avg_cover = mean(AH_SpeciesCover, na.rm = T), frequency = n() ) %>% 
   left_join( spp_attributes, by = c('Species' = 'SYMBOL'))
 
-allotments_surveyed_per_ecoregion <- AIM_species_allotments %>% 
+allotments_surveyed_per_ecoregion <- 
+  AIM_species_allotments %>% 
   st_drop_geometry() %>% 
   filter( !is.na(uname) ) %>% 
-  group_by( ecogroup ) %>% 
+  group_by( ecoregn ) %>% 
   summarise( num_allotments_surveyed = n_distinct(uname))
 
-avg_cover <- allotment_veg %>% 
-  group_by( ecogroup , Species ) %>%
-  summarise( avg_cover = mean(avg_cover, na.rm = T), frequency = sum( frequency )/sum(nPrimaryKeys), n_allots = n_distinct(uname)) %>% 
-  group_by( ecogroup ) %>% 
-  arrange(ecogroup, desc( n_allots)) 
+avg_cover <- 
+  allotment_veg %>% 
+  group_by( ecoregn , Species ) %>%
+  summarise( avg_cover = mean(avg_cover, na.rm = T), 
+             frequency = sum( frequency )/sum(nPrimaryKeys), 
+             n_allots = n_distinct(uname)) %>% 
+  group_by( ecoregn ) %>% 
+  arrange(ecoregn, desc( n_allots)) 
 
 avg_cover <- avg_cover %>% 
   left_join(allotments_surveyed_per_ecoregion) %>%
@@ -126,6 +128,7 @@ avg_cover %>%
 
 allotment_veg %>% 
   write_csv(file = 'data/temp/AIM_species_by_allotment.csv')
+
 
 
 
