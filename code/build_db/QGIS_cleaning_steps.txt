@@ -1,0 +1,58 @@
+
+processing.run("native:fixgeometries", {
+  'INPUT':'/Users/andy/Dropbox/projects/BLM_rangeland_trends/data/temp/allotments/step_one.shp',
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+processing.run("grass7:v.clean", 
+               {'input':'memory://MultiPolygon?crs=EPSG:5070&field=ID:double(23,15)&field=lst_dt_:date(10,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={c5fd835b-c29f-4dc0-b7b8-b942f256268b}',
+                 'type':[0,1,2,3,4,5,6],
+                 'tool':[0],
+                 'threshold':'',
+                 '-b':False,
+                 '-c':False,
+                 'output':'TEMPORARY_OUTPUT',
+                 'error':'TEMPORARY_OUTPUT',
+                 'GRASS_REGION_PARAMETER':None,
+                 'GRASS_SNAP_TOLERANCE_PARAMETER':10,
+                 'GRASS_MIN_AREA_PARAMETER':0.0001,
+                 'GRASS_OUTPUT_TYPE_PARAMETER':0,
+                 'GRASS_VECTOR_DSCO':'',
+                 'GRASS_VECTOR_LCO':'',
+                 'GRASS_VECTOR_EXPORT_NOCAT':False
+                 })
+
+processing.run("native:fixgeometries", {
+  'INPUT':'/private/var/folders/84/rz2dy3b947q00qv30ntgn1l00000gn/T/processing_QyWWEc/c5009358d720495a8f801090ba707a1a/output.gpkg',
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+
+processing.run("native:deleteduplicategeometries", {
+  'INPUT':'memory://MultiPolygon?crs=EPSG:5070&field=fid:long(0,0)&field=cat:integer(0,0)&field=ID:double(0,0)&field=lst_dt_:datetime(0,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={0fd66504-3aeb-4533-a481-d904cc4a96d3}',
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+processing.run("native:collect", {
+  'INPUT':'memory://MultiPolygon?crs=EPSG:5070&field=fid:long(0,0)&field=cat:integer(0,0)&field=ID:double(0,0)&field=lst_dt_:datetime(0,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={0a5e41a9-7c49-4dfc-bdc7-3f30b7f4bea0}',
+  'FIELD':['ID','lst_dt_','ALLOT_N','ST_ALLO','ADMIN_S','ADM_OFC','ADM_UNI'],
+  'OUTPUT':'TEMPORARY_OUTPUT'}
+  )
+
+processing.run("native:fixgeometries", {
+  'INPUT':'memory://MultiPolygon?crs=EPSG:5070&field=fid:long(0,0)&field=cat:integer(0,0)&field=ID:double(0,0)&field=lst_dt_:datetime(0,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={6474b78e-3535-46e7-9fed-8742213adfad}',
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+processing.run("native:dissolve", {
+  'INPUT':'memory://MultiPolygon?crs=EPSG:5070&field=fid:long(0,0)&field=cat:integer(0,0)&field=ID:double(0,0)&field=lst_dt_:datetime(0,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={d4bfc75e-627b-43b9-bf00-7805bb627a77}',
+  'FIELD':['ID','lst_dt_','ALLOT_N','ST_ALLO','ADMIN_S','ADM_OFC','ADM_UNI'],
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+processing.run("native:fixgeometries", {
+  'INPUT':'memory://MultiPolygon?crs=EPSG:5070&field=fid:long(0,0)&field=cat:integer(0,0)&field=ID:double(0,0)&field=lst_dt_:datetime(0,0)&field=ALLOT_N:string(80,0)&field=ST_ALLO:string(80,0)&field=ADMIN_S:string(80,0)&field=ADM_OFC:string(80,0)&field=ADM_UNI:string(80,0)&uid={04eccc41-3456-4d8a-89a5-8d0856942d27}',
+  'OUTPUT':'TEMPORARY_OUTPUT'
+  })
+
+# export to "step_two.shp"
