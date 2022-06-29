@@ -1,6 +1,10 @@
 rm(list = ls())
 library(tidyverse)
 
+# Run these first 
+source('code/analysis/AIM_join_allotments.R')
+source('code/analysis/AIM_clean_species_state_table.R')
+
 AIM <- read_csv('data/temp/AIM_species_by_allotment.csv') %>% 
   rename('ecoregion' = ecoregn)
 speciesState <- read_csv('data/temp/clean_speciesState_table.csv')
