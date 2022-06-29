@@ -4,6 +4,9 @@ library(tidyverse)
 library(sf)
 
 # Run "1_clean_allotment_shapes" first 
+allotments <- read_sf('data/temp/allotments/allotments_clean.shp')
+
+
 adm_districts <- sf::read_sf('data/spatial/BLM_National_Administrative_Units/admu.gdb/', 
                            layer = 'blm_natl_admu_dist_poly_webpub') %>% 
   filter( ADMIN_ST != 'AK' )
@@ -13,7 +16,7 @@ adm_offices <- sf::read_sf('data/spatial/BLM_National_Administrative_Units/admu.
   filter( ADMIN_ST != 'AK')  
 
 # Get centroids for spatial joins later 
-allotment_info <- sf::read_sf('data/temp/BLM_allotments_cleaned/allotments.shp') %>% 
+allotment_info <- sf::read_sf('data/temp/BLM_allotments_final_clean/allotments.shp') %>% 
   st_centroid() %>% 
   st_transform(crs = "epsg:4326") %>% 
   mutate( 
@@ -22,19 +25,6 @@ allotment_info <- sf::read_sf('data/temp/BLM_allotments_cleaned/allotments.shp')
   mutate( lon = xy[,1], lat = xy[,2]) %>% 
   select( - xy )
 
-# Add Las Cruces District/Office: missing from field office Layer
-# but is present in District layer 
-Las_Cruces <- adm_districts %>% 
-  filter( ADMIN_ST == 'NM') %>% 
-  filter( PARENT_CD == 'NML00000') 
-
-adm_offices <- adm_offices %>% 
-  rbind( 
-    Las_Cruces %>%
-      mutate( ADM_UNIT_CD = PARENT_CD) %>%
-      mutate( ADMU_NAME = PARENT_NAME) %>%
-      mutate( BLM_ORG_TYPE = 'Field' ) %>% 
-      mutate( APPRV_DT = NA, EFF_DT = NA, ADMU_ST_URL = NA) ) 
 
 # Standardize admin names 
 # A couple of ADMU_UNIT_CD's have more than one entry
@@ -111,7 +101,7 @@ admin_office_info <-
 
 allotment_info <- 
   allotment_info %>% 
-  select( uname, ALLOT_NO, ALLOT_NAME, LAST_DATE, area, hectares, ADM_UNIT_CD, ADMIN_ST, lat, lon ) %>% 
+  select( uname, ALLOT_NO, ALLOT_NAME, LAST_DATE, area, hectare, ADM_UNIT_CD, ADMIN_ST, lat, lon ) %>% 
   left_join(admin_office_info, by = 'ADM_UNIT_CD') 
 
 # check for duplicates 
@@ -135,7 +125,7 @@ admin_office_info %>% filter( ADMU_NAME == 'NORTH DAKOTA FIELD OFFICE')
 admin_office_info %>% filter( ADMU_NAME == 'SOUTH DAKOTA FIELD OFFICE')
 
 # Show distribution of allotment field offices in ND and SD
-allotment_info %>% 
+Dakotas_allotments <- allotment_info %>% 
   filter( ADMU_NAME %in% c( 'SOUTH DAKOTA FIELD OFFICE', 'NORTH DAKOTA FIELD OFFICE')) %>% 
   select( uname, ADMU_NAME, lat, lon ) %>% 
   st_as_sf(coords = c('lon', 'lat'), 
@@ -146,9 +136,14 @@ allotment_info %>%
             filter(ADMU_NAME %in% c( 'SOUTH DAKOTA FIELD OFFICE', 'NORTH DAKOTA FIELD OFFICE') ), 
           aes( color = ADMU_NAME) ) + 
   geom_sf( aes( color = ADMU_NAME)) + 
-  ggtitle("N. Dakota and S. Dakota -- original field office designation") +
-  ggsave(filename = 'output/figures/ND_SD_field_offices.png', 
-         width = 8, height = 8, units = 'in',dpi = 'print')
+  ggtitle("N. Dakota and S. Dakota -- original field office designation")
+
+ggsave( Dakotas_allotments, 
+        filename = 'output/figures/ND_SD_field_offices.png', 
+        width = 8, 
+        height = 8, 
+        units = 'in', 
+        dpi = 'print')
 
 # Re-assign all allotments in SD Field Office North of 46.3 Lon to ND field office
 allotment_info <- 
@@ -156,7 +151,8 @@ allotment_info <-
   mutate( ADMU_NAME = ifelse( ADMU_NAME == 'SOUTH DAKOTA FIELD OFFICE' & lat >= 46.3, 
                               'NORTH DAKOTA FIELD OFFICE', ADMU_NAME)) 
 #  ------------------------- # 
-allotment_info %>% 
+reassigned_dakotas_allotments <- 
+  allotment_info %>% 
   filter( ADMIN_ST == "MT", 
           ADMU_NAME %in% c( 'SOUTH DAKOTA FIELD OFFICE', 'NORTH DAKOTA FIELD OFFICE')) %>% 
   select( uname, ADMU_NAME, lat, lon ) %>% 
@@ -168,9 +164,14 @@ allotment_info %>%
             filter(ADMU_NAME %in% c( 'SOUTH DAKOTA FIELD OFFICE', 'NORTH DAKOTA FIELD OFFICE') ), 
           aes( color = ADMU_NAME), alpha = 0.1 ) + 
   geom_sf( aes( color = ADMU_NAME)) + 
-  ggtitle("N. Dakota and S. Dakota -- re-assigned field office designation") +
-  ggsave(filename = 'output/figures/ND_SD_field_offices2.png', 
-         width = 8, height = 8, units = 'in',dpi = 'print')
+  ggtitle("N. Dakota and S. Dakota -- re-assigned field office designation")
+
+ggsave( reassigned_dakotas_allotments, 
+        filename = 'output/figures/ND_SD_field_offices2.png', 
+        width = 8, 
+        height = 8, 
+        units = 'in', 
+        dpi = 'print')
 
 
 allotment_info %>% 
@@ -192,3 +193,8 @@ adm_offices %>%
 
 adm_districts %>% 
   write_rds(file = 'data/temp/cleaned_BLM_district_shapes.rds')
+
+dir.create( 'data/temp/BLM_field_offices_cleaned')
+adm_offices %>% 
+  st_write( 'data/temp/BLM_field_offices_cleaned/field_offices.shp', 
+           layer = 'offices', append = F)

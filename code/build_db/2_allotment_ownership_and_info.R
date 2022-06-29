@@ -1,4 +1,3 @@
-# load files into Postgres database 
 rm(list = ls() )
 library(tidyverse)
 library(sf)
