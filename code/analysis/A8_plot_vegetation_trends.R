@@ -7,14 +7,12 @@ library(gridExtra)
 source('code/analysis/functions.R')
 source('code/analysis/parameters.R')
 
-# cover trends:  ------------------------------------------ #
+# Cover trends:  ------------------------------------------ #
 cover_model_files <-
   dir(path = 'output',
       pattern = '.*_cover_trend_model.rds',
       full.names = T)
 
-# Drop Woody 
-cover_model_files <- cover_model_files[ !str_detect( cover_model_files, 'WOODY') ] 
 cover_models <- lapply(cover_model_files, read_rds)
 types  <- c(str_extract(cover_model_files, pattern = '[A-Z]+'))
 
@@ -31,59 +29,17 @@ trend_table_cover <- mapply(
   SIMPLIFY = F
 )
 
-# overall <- lapply( cover_models, emtrends, specs = ~ 1, var = 'year2')
-# 
-# overall <- do.call( rbind, lapply( overall , as.data.frame ))  %>% 
-#   rename(ecoregion = `1`) %>% 
-#   mutate( type = row.names(.)) 
-# 
-# trend_table_cover$overall <- overall
 trend_table_cover <- do.call(rbind, trend_table_cover)
 
-# Drop Total Herb Cover Type
 trend_table_cover <-
   trend_table_cover %>%
   mutate(type = factor(type))
 
-#
-cover_attribs <- lapply(cover_models,
-                        function(x) {
-                          attributes(x@frame$value2)
-                        })
-
-year2_attributes <-
-  lapply(cover_models, function(x)
-    attributes(x@frame$year2))
-
 trend_table_cover <- trend_table_cover %>%
   mutate( ecoregion = factor(ecoregion)) %>% 
-  mutate(ecoregion = factor(ecoregion, labels = ecoregion_labels)) %>%
-  left_join(data.frame(
-    type = unique(trend_table_cover$type),
-    scale = c(
-      cover_attribs[[1]]$`scaled:scale`,
-      cover_attribs[[2]]$`scaled:scale`,
-      cover_attribs[[3]]$`scaled:scale`,
-      cover_attribs[[4]]$`scaled:scale`,
-      cover_attribs[[5]]$`scaled:scale`
-      
-    ),
-    year2_scale = c(
-      year2_attributes[[1]]$`scaled:scale`,
-      year2_attributes[[2]]$`scaled:scale`,
-      year2_attributes[[3]]$`scaled:scale`,
-      year2_attributes[[4]]$`scaled:scale`,
-      year2_attributes[[5]]$`scaled:scale`
-    )
-  ),
-  by = 'type') %>%
-  mutate(
-    year2.trend = year2.trend * scale / year2_scale,
-    asymp.LCL = asymp.LCL * scale / year2_scale,
-    asymp.UCL = asymp.UCL * scale / year2_scale
-  )
+  mutate(ecoregion = factor(ecoregion, labels = ecoregion_labels)) 
 
-trend_table_cover$unit <- 'Cover'
+trend_table_cover$measure <- 'Cover'
 
 # Production Models and Trends--------------------------- #
 npp_model_files <-
@@ -93,68 +49,35 @@ npp_model_files <-
 
 npp_models <- lapply(npp_model_files, read_rds)
 
-types  <-
+types_npp  <-
   c(str_extract(basename(npp_model_files), pattern = '[A-Z]+'))
 
-types <- factor(types, labels = c('Annual', 'Perennial'))
+types_npp <- factor(types_npp, labels = c('Annual', 'Perennial'))
+names( npp_models ) <- types_npp 
 
-trend_table <-
+trend_table_npp <-
   mapply(
     x = npp_models,
-    y = types,
+    y = types_npp,
     FUN = function(x, y)
       ecoregion_trends_as_df(x, y),
     SIMPLIFY = F
   )
 
-# overall <- lapply( npp_models, emtrends, specs = ~ 1, var = 'year2')
-# names( overall ) <- types 
-# overall <- do.call( rbind, lapply( overall , as.data.frame ))  %>% 
-#   rename(ecoregion = `1`) %>% 
-#   mutate( type = row.names(.)) 
+trend_table_npp <- do.call(rbind, trend_table_npp)
 
-# trend_table$overall <- overall
-trend_table <- do.call(rbind, trend_table)
-
-# Transform rate to get back to raw un-scaled proportion increase
-# Multiply rates by the scale (sd) of log response
-response_attributes <-
-  lapply(npp_models, function(x)
-    attributes(x@frame$value2))
-
-year2_attributes <-
-  lapply(npp_models, function(x)
-    attributes(x@frame$year2))
-
-trend_table_npp <- trend_table %>%
-  left_join(data.frame(
-    type = c('Annual', 'Perennial'),
-    scale = c(
-      response_attributes[[1]]$`scaled:scale`,
-      response_attributes[[2]]$`scaled:scale`
-    ),
-    year2_scale = c(
-      year2_attributes[[1]]$`scaled:scale`,
-      year2_attributes[[2]]$`scaled:scale`
-    )
-  ),
-  by = 'type') %>%
-  mutate(
-    year2.trend = year2.trend * scale / year2_scale,
-    asymp.LCL = asymp.LCL * scale / year2_scale ,
-    asymp.UCL = asymp.UCL * scale / year2_scale
-  )   %>%
+trend_table_npp <- trend_table_npp %>%
   mutate( ecoregion = factor(ecoregion)) %>%
   mutate(ecoregion = factor(ecoregion, labels = ecoregion_labels))
 
-trend_table_npp$unit <- 'Production'
+trend_table_npp$measure <- 'Production'
 
 # Plot Cover and Production Trends together
 trend_table <-
   trend_table_cover %>%
-  bind_rows(trend_table_npp %>% filter(type != "Herbaceous")) %>%
-  mutate(unit = factor(
-    unit,
+  bind_rows(trend_table_npp) %>%
+  mutate(measure = factor(
+    measure,
     levels = c('Cover', 'Production'),
     ordered = T
   )) %>%
@@ -169,13 +92,13 @@ trend_table <-
 trend_plot1 <- 
   trend_table %>%
   plot_trend_coefficients_vertical(my_colors = my_colors) +
-  facet_grid(ecoregion  ~ unit, switch = 'y', scales = 'free_x') +
+  facet_grid(ecoregion  ~ measure, switch = 'y', scales = 'free_x') +
   theme(legend.title = element_text()) +
   scale_color_manual(name = 'Functional Type', values = my_colors) +
   scale_x_continuous(name = 'Trend Slope (+/- 95%CI)') +
   scale_color_manual(name = 'Functional Type',
                      values = my_colors,
-                     guide = guide_legend(reverse = T))
+                     guide = guide_legend())
 
 ggsave(trend_plot1, 
     filename = 'output/figures/Fig_4_veg_trends_by_Ecoregion.png',
@@ -185,21 +108,9 @@ ggsave(trend_plot1,
     dpi = 'print'
   )
 
-# trend_table_cover %>%
-#   mutate( type = factor(type, levels =c('Tree', 'Shrub', 'Perennial', 'Bare', 'Annual'), ordered = T)) %>%
-#   bind_rows( (trend_table %>% mutate(unit = as.character(unit)))) %>%
-#   filter( type != 'Total') %>%
-#   mutate( unit = factor( unit, levels = c('Cover', 'Production'), ordered = T)) %>%
-#   plot_trend_coefficients(my_colors = my_colors ) +
-#   facet_grid( unit ~ ecoregion, scales = 'free_y' ) +
-#   scale_y_continuous(name = 'Trend Slope') +
-#   ggsave(filename = 'output/figures/Fig_3_HORIZONTAL_veg_trends_by_Ecoregion.png',
-#        height = 5, width = 9, units = 'in', dpi = 'print')
-#
-
 #  Save Tables -------------------------------------------- #
 ttlist <- trend_table %>%
-  split(f = .$type:.$unit)
+  split(f = .$type:.$measure)
 
 ttlist <- ttlist[which(unlist(lapply(ttlist, nrow)) != 0)]
 
@@ -213,184 +124,64 @@ for (i in names(ttlist)) {
 
 # Plot observed and predicted over time
 ## Plot Allotment Cover over time :
-dat <- mapply(
-  x = cover_models,
-  y = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'),
-  FUN = function(x, y)
-    back_trans_frames(x, y),
-  SIMPLIFY = F
-)
 
-dat <- mapply(
-  x = dat,
-  y = cover_models,
-  FUN = function(x, y) {
-    x$yhat <-
-      back_transform(predict(y, 
-                             newdata = x, 
-                             re.form = ~ (1 | ecoregion:OFFICE) ),
-                     attributes(y@frame$value2))
-    return(x)
-  },
-  SIMPLIFY = F
-)
+frames <- lapply( cover_models, function(x) x@frame)
+types <- names( frames  )
 
-dat <- do.call(rbind, dat)
+yhat <- lapply( cover_models, FUN = function( x) {
+  data.frame( yhat = predict( x, re.form = ~ (1|uname) + (1|ecoregion:OFFICE)))
+}) 
 
-dat2 <- dat %>%
-  mutate(Class = ifelse(type %in% c('Tree', 'Shrub'), 'Woody', 'Herbaceous')) %>%
-  mutate(ecoregion = factor(ecoregion, labels = c(ecoregion_labels)))
+names( yhat ) <- types 
 
-cover_plot <- dat2 %>%
-  ggplot(aes(
-    x = year,
-    y = value,
-    color = type,
-    fill = type ,
-    group = type
-  )) +
-  stat_summary(
-    fun.max = function(x)
-      quantile(x, 0.75),
-    fun.min = function(x)
-      quantile(x, 0.25),
-    geom = 'ribbon',
-    alpha = 0.4,
-    color = NA
-  ) +
-  stat_summary(
-    fun = function(x)
-      median(x),
-    geom = 'line'
-  ) +
-  facet_grid(ecoregion ~ Class) +
-  scale_color_manual(name = 'Vegetation Type', values = my_colors) +
-  scale_fill_manual(name = 'Vegetation Type', values = my_colors) +
-  theme_bw() +
-  scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme(strip.text.y = element_text(angle = 0)) +
-  ylab('Cover (%)')   +
-  xlab('Year')
+cover_data <- cbind( do.call( rbind, frames) , do.call( rbind, yhat ) ) %>% 
+  mutate( type = str_extract( rownames(.), '^[A-z]+')) %>% 
+  mutate( measure = 'Cover') %>% 
+  mutate( year = t + 1991 )
+
+# Get NPP data 
+frames_npp <- lapply( npp_models, function( x) x@frame )
+types_npp <- names(frames_npp)
+yhat_npp <- lapply( npp_models, FUN = function( x) {
+  data.frame( yhat = predict( x, re.form = ~ (1|uname) + (1|ecoregion:OFFICE)))
+}) 
+
+npp_data <- cbind( do.call( rbind, frames_npp) , do.call( rbind, yhat_npp ) ) %>% 
+  mutate( type = str_extract( rownames(.), '^[A-z]+')) %>% 
+  mutate( measure = 'Production') %>% 
+  mutate( year = t + 1991)
+
+# bind cover and npp 
+all_data_summary <- cover_data %>% 
+  bind_rows(npp_data) %>% 
+  mutate( value = exp(log_value)) %>% 
+  group_by( year, ecoregion, measure , type ) %>%
+  summarise( yhat_bt  = exp(mean(yhat)),   
+             lcl = quantile( value, 0.25) , ucl = quantile( value, 0.75))
 
 
-dat <- mapply(
-  x = cover_models,
-  y = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'),
-  FUN = function(x, y)
-    back_trans_frames(x, y),
-  SIMPLIFY = F
-)
+# Add indicator for significant trends from the trend table 
+all_data_summary <- 
+  all_data_summary %>% 
+  ungroup() %>% 
+  mutate( ecoregion = factor( ecoregion, labels = ecoregion_labels)) %>% 
+  left_join(trend_table %>% select( ecoregion, type, measure, sig) , by = c('ecoregion', 'type',  'measure')) %>% 
+  mutate(significant =  ifelse(sig == '*', T, F))
 
-#y = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'),
-
-get_plotting_data <-
-  function(m, type_label, quantile_ribbon = T, ...) {
-    temp <- m@frame
-    year2 <- temp$year2
-    #ecoregion <- temp$ecoregion
-    #state <- temp$admin_st
-    #office <- temp$OFFICE
-    #uname <- temp$uname
-    att1 <- attributes(temp$value2)
-    att2 <- attributes(temp$year2)
-    temp$type <- type_label
-    temp$year <- back_transform(temp$year2, att2, log = F)
-    
-    # find back-transformed ecoregion level averages
-    temp_pred <- temp %>%
-      group_by(year2, year, ecoregion, OFFICE, uname, type) %>%
-      summarise(n = n()) %>%
-      data.frame() %>%
-      mutate(yhat2 = predict(newdata = .,  m, 
-                             re.form = ~ (1 | ecoregion:OFFICE) + (1 | uname)) ) %>%
-      group_by(year, ecoregion , type) %>%
-      summarise( yhat2 = weighted.mean(yhat2, n)) %>% 
-      #summarise( yhat2 = sum(yhat2 * n) / (sum(n))) %>% 
-      mutate(yhat = back_transform(yhat2, att1)) # avg weighted by no. allots
-    
-    # Get quantiles for empirical data for plotting
-    if (quantile_ribbon) {
-      temp_obs <-
-        temp %>%
-        group_by(year, ecoregion, type) %>%
-        #sample_n( size , replace = T ) %>%
-        summarise(
-          m = median(value2),
-          ul = quantile(value2, 0.75),
-          ll = quantile(value2, 0.25)
-        ) %>%
-        pivot_longer(
-          cols = c(m, ul, ll),
-          names_to = 'stat',
-          values_to = 'value2'
-        ) %>%
-        mutate(value = back_transform(value2 , att1))
-      
-    } else{
-      temp_obs <-
-        temp %>%
-        group_by(year, ecoregion, type) %>%
-        sample_n(... , replace = T) %>%
-        #summarise( m = median( value2 ), ul = quantile( value2, 0.75), ll = quantile( value2, 0.25)) %>%
-        #pivot_longer( cols = c(m, ul, ll), names_to = 'stat', values_to = 'value2') %>%
-        mutate(value = back_transform(value2 , att1))
-    }
-    return(list(predictions = temp_pred, observations = temp_obs))
-  }
-
-
-temp <- mapply(
-  x = cover_models,
-  y = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'),
-  FUN = function(x, y, ...)
-    get_plotting_data(x, y, ...),
-  SIMPLIFY = F
-)
-
-predictions <-
-  do.call(rbind,  lapply(temp, function(x)
-    x$predictions))
-
-observations <-
-  do.call(rbind, lapply(temp, function(x)
-    x$observations))
-
-old_labels <- levels(trend_table$ecoregion)
-new_labels <- levels(predictions$ecoregion)
-
-predictions$ecoregion <-
-  factor(predictions$ecoregion , labels = old_labels)
-
-preds <- predictions %>%
-  left_join(trend_table %>%
-              filter(unit == 'Cover', sig == "*"),
-            by = c('ecoregion', 'type')) %>%
-  filter(!is.na(sig))
-
-observations$ecoregion <-
-  factor(observations$ecoregion, labels = ecoregion_labels)
-
-levels(observations$ecoregion)
-levels(preds$ecoregion)
 ylab = "Cover (%)"
 
 cover_time_series <- 
-  observations %>%
-  select(-value2) %>%
-  pivot_wider(names_from = stat, values_from = value) %>%
-  ggplot(aes(x = year, y = m, color = type)) +
-  geom_ribbon(aes(ymin = ll, ymax = ul, fill = type),
-              alpha = 0.5,
-              color = NA) +
-  geom_line(data = preds,
-            aes(x = year, y = yhat),
-            color = 'black',
-            alpha = 0.5) +
+  all_data_summary %>% 
+  filter( measure == 'Cover') %>% 
+  ggplot( aes( x = year) ) + 
+  geom_ribbon(aes( ymin = lcl, ymax = ucl, fill = type), color = NA, alpha = 0.5) + 
+  geom_line(data = all_data_summary %>% 
+              filter( significant, measure == 'Cover') , 
+            aes( y = yhat_bt ), color = 'black' , alpha = 0.5) + 
   facet_grid(type ~ ecoregion, scales = 'free_y') +
   scale_fill_manual(name = 'Cover Type', values = my_colors) +
   scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  theme_bw() +
+  theme_bw() + 
   scale_y_log10(name = ylab) +
   theme(strip.text.y = element_text(angle = 0),
         axis.text.x = element_text(angle = -45, hjust = 0)) +
@@ -399,228 +190,38 @@ cover_time_series <-
 
 ggsave(
   cover_time_series , 
-    filename = 'output/figures/Fig_2_cover_series_by_ecoregion.png',
-    height = 7,
-    width = 10,
-    units = 'in',
-    dpi = 'print'
-  )
-
-# Do cover series alternate version "dots" ------------------------------ #
-temp <- mapply(
-  x = cover_models,
-  y = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'),
-  FUN = function(x, y, ...)
-    get_plotting_data(x, y, quantile_ribbon = F, ...),
-  size = 10,
-  SIMPLIFY = F
+  filename = 'output/figures/Fig_2_cover_series_by_ecoregion.png',
+  height = 7,
+  width = 10,
+  units = 'in',
+  dpi = 'print'
 )
 
-predictions <-
-  do.call(rbind,  lapply(temp, function(x)
-    x$predictions))
-
-observations <-
-  do.call(rbind, lapply(temp, function(x)
-    x$observations))
-
-old_labels <- levels(trend_table$ecoregion)
-new_labels <- levels(predictions$ecoregion)
-
-predictions$ecoregion <-
-  factor(predictions$ecoregion , labels = old_labels)
-
-preds <- predictions %>%
-  left_join(trend_table %>%
-              filter(unit == 'Cover', sig == "*"),
-            by = c('ecoregion', 'type')) %>%
-  filter(!is.na(sig))
-
-observations$ecoregion <-
-  factor(observations$ecoregion, labels = ecoregion_labels)
-
-cover_time_series_dots <- 
-  observations %>%
-  ggplot(aes(x = year, y = value, color = type)) +
-  geom_point(alpha = 0.5) +
-  geom_line(data = preds, aes(x = year, y = yhat), color = 'black') +
-  facet_grid(type ~ ecoregion, scales = 'free_y') +
-  scale_color_manual(name = 'Type', values = my_colors) +
-  scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  theme_bw() +
-  scale_y_log10(name = ylab) +
-  theme(strip.text.y = element_text(angle = 0),
-        axis.text.x = element_text(angle = -45, hjust = 0)) +
-  xlab('Year') +
-  theme(legend.position = "none") 
-
-
-ggsave(cover_time_series_dots, 
-    filename = 'output/figures/Fig_2_cover_series_by_ecoregion_dots.png',
-    height = 7,
-    width = 10,
-    units = 'in',
-    dpi = 'print'
-  )
-
-# Plot NPP over time ----------------------------------------------------- #
-temp <- mapply(
-  x = npp_models,
-  y = c('Annual', 'Perennial'),
-  FUN = function(x, y, ...)
-    get_plotting_data(x, y, quantile_ribbon = T, ...),
-  SIMPLIFY = F
-)
-
-predictions <-
-  do.call(rbind,  lapply(temp, function(x)
-    x$predictions))
-
-observations <-
-  do.call(rbind, lapply(temp, function(x)
-    x$observations))
-
-predictions <- predictions %>% filter(type != 'Herb')
-observations <- observations %>% filter(type != 'Herb')
-predictions$ecoregion <-
-  factor(predictions$ecoregion , labels = old_labels)
-
-preds <- predictions %>%
-  left_join(trend_table %>%
-              filter(unit == 'Production', sig == "*"),
-            by = c('ecoregion', 'type')) %>%
-  filter(!is.na(sig))
-
-observations$ecoregion <-
-  factor(observations$ecoregion, labels = ecoregion_labels)
-
+# NPP time series 
 ylab <- expression(Aboveground ~ Production ~ "(" * kg ~ ha ^ -1 * ")")
-
-production_time_series_plot1 <- 
-  observations %>%
-  select(-value2) %>%
-  pivot_wider(names_from = stat, values_from = value) %>%
-  ggplot(aes(x = year, y = m, color = type)) +
-  geom_ribbon(aes(ymin = ll, ymax = ul, fill = type),
-              alpha = 0.5,
-              color = NA) +
-  geom_line(data = preds,
-            aes(x = year, y = yhat),
-            color = 'black',
-            alpha = 0.5) +
-  facet_grid(type ~ ecoregion, scales = 'free_y') +
-  scale_fill_manual(name = 'Cover Type', values = my_colors) +
+production_time_series <- 
+  all_data_summary %>% 
+  filter( measure == 'Production') %>% 
+  mutate( type = factor(type, levels = c('Annual', 'Perennial'))) %>%
+  ggplot( aes( x = year) ) + 
+  geom_ribbon(aes( ymin = lcl, ymax = ucl, fill = type), color = NA, alpha = 0.5) + 
+  geom_line(data = all_data_summary %>% 
+              filter( significant, measure == 'Production') , 
+            aes( y = yhat_bt, group = type ), color = 'black' , alpha = 0.5) + 
+  facet_grid( ~ ecoregion, scales = 'free_y') +
+  scale_fill_manual(name = 'Type', values = my_colors[c(1,3)]) +
   scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  theme_bw() +
+  theme_bw() + 
   scale_y_log10(name = ylab) +
   theme(strip.text.y = element_text(angle = 0),
         axis.text.x = element_text(angle = -45, hjust = 0)) +
-  xlab('Year') +
-  theme(legend.position = "none") 
+  xlab('Year')
 
-ggsave( production_time_series_plot1, 
-    filename = 'output/figures/Fig_3_production_series_by_ecoregion.png',
-    height = 4,
-    width = 10,
-    units = 'in',
-    dpi = 'print'
-  )
-
-# Alternate production series using "dots" --------------------------------- #
-temp <- mapply(
-  x = npp_models,
-  y = c('Annual', 'Perennial'),
-  FUN = function(x, y, ...)
-    get_plotting_data(x, y, quantile_ribbon = F, ...),
-  size = 10,
-  SIMPLIFY = F
+ggsave( production_time_series, 
+        filename = 'output/figures/Fig_3_production_series_by_ecoregion.png',
+        height = 3,
+        width = 10,
+        units = 'in',
+        dpi = 'print'
 )
 
-predictions <-
-  do.call(rbind,  lapply(temp, function(x)
-    x$predictions))
-
-observations <-
-  do.call(rbind, lapply(temp, function(x)
-    x$observations))
-
-predictions <- predictions %>% filter(type != 'Herb')
-observations <- observations %>% filter(type != 'Herb')
-predictions$ecoregion <-
-  factor(predictions$ecoregion , labels = old_labels)
-
-preds <- predictions %>%
-  left_join(trend_table %>%
-              filter(unit == 'Production', sig == "*"),
-            by = c('ecoregion', 'type')) %>%
-  filter(!is.na(sig))
-
-observations$ecoregion <-
-  factor(observations$ecoregion, labels = ecoregion_labels)
-
-ylab <- expression(Aboveground ~ Production ~ "(" * kg ~ ha ^ -1 * ")")
-
-production_time_series_plot_dots <- 
-  observations %>%
-  ggplot(aes(x = year, y = value, color = type)) +
-  geom_point(alpha = 0.7) +
-  geom_line(data = preds, aes(x = year, y = yhat), color = 'black') +
-  facet_grid(type ~ ecoregion, scales = 'free_y') +
-  scale_color_manual(name = 'Type', values = my_colors) +
-  scale_x_continuous(breaks = c(1995, 2005, 2015)) +
-  theme_bw() +
-  scale_y_log10(name = ylab) +
-  theme(strip.text.y = element_text(angle = 0),
-        axis.text.x = element_text(angle = -45, hjust = 0)) +
-  xlab('Year') +
-  theme(legend.position = "none") 
-  
-ggsave( production_time_series_plot_dots, 
-    filename = 'output/figures/Fig_3_production_series_by_ecoregion_dots.png',
-    height = 7,
-    width = 10,
-    units = 'in',
-    dpi = 'print'
-  )
-
-# Alternative version with ecoregion 
-cover_plot  +
-  facet_grid(type ~ ecoregion , scales = 'free_y') +
-  scale_y_log10() +
-  theme(axis.text.x = element_text(angle = -45, hjust = 0))
-
-
-
-herbs <- cover_plot %+%
-  (dat2 %>% filter(Class == 'Herbaceous')) +
-  facet_grid(Class ~ ecoregion) +
-  theme(strip.background.y  = element_blank(),
-        strip.text.y = element_blank()) +
-  guides(fill = F, color = F)
-
-woody <- cover_plot %+%
-  (dat2 %>% filter(Class == 'Woody')) +
-  facet_grid(ecoregion ~ Class) +
-  guides(fill = F, color = F) +
-  theme(axis.title.y = element_blank())
-
-
-layout <- rbind(c(1, 2, 3))
-
-#full_legend <- get_legend(cover_plot)
-
-# grid.arrange(
-#   herbs,
-#   woody,
-#   as_ggplot(full_legend),
-#   layout_matrix = layout ,
-#   widths = c(1, 1.25, 0.5)
-# ) %>%
-#   ggsave(
-#     filename = 'output/figures/Herbaceous_and_Woody_veg_series.png',
-#     dpi = 'print',
-#     height = 8,
-#     width = 8,
-#     units = 'in'
-#   )
-# 

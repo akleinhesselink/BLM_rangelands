@@ -56,7 +56,7 @@ plot_single_allotment_trends <- function( dataset, my_colors ){
 
 ecoregion_trends_as_df <- function(trend_model, type){ 
   
-  trends <- emmeans::emtrends(trend_model, ~ ecoregion, var = 'year2') %>% 
+  trends <- emmeans::emtrends(trend_model, ~ ecoregion, var = 't') %>% 
     data.frame(type = type)
 }
 
@@ -99,7 +99,7 @@ plot_trend_coefficients <- function(beta_table, my_colors) {
 plot_trend_coefficients_vertical <- function(my_trend_table, my_colors ) { 
   
   my_trend_table %>%   
-    ggplot(aes( x = year2.trend, y = type, color = type  )) + 
+    ggplot(aes( x = t.trend, y = type, color = type  )) + 
     geom_vline( aes( xintercept = 0 ), linetype = 2, alpha = 0.5) + 
     geom_point() + 
     geom_errorbar(aes( xmin = asymp.LCL, xmax = asymp.UCL)) + 
@@ -117,10 +117,10 @@ plot_trend_coefficients_vertical <- function(my_trend_table, my_colors ) {
 # Functions for summarizing trends at the Ecogroup and BLM Admin Level
 get_ecoregion_trends <- function( model ){ 
   
-  fixeffects <- emtrends(model, ~ ecoregion, 'year2') %>% 
+  fixeffects <- emtrends(model, ~ ecoregion, 't') %>% 
     as.data.frame()
   
-  ecoregion_effect <- fixeffects$year2.trend
+  ecoregion_effect <- fixeffects$t.trend
   names(ecoregion_effect) <-  c( str_trim( fixeffects$ecoregion ) )
   
   return( ecoregion_effect ) 
@@ -143,8 +143,8 @@ get_blm_random_effects <- function( model ) {
   out$allotment$uname <- as.integer( row.names( out$allotment ))
 
   
-  out$office$office_trend <- out$office$year2
-  out$allotment$allot_trend <- out$allotment$year2
+  out$office$office_trend <- out$office$t
+  out$allotment$allot_trend <- out$allotment$t
   
   return( out )
 } 
@@ -180,7 +180,6 @@ back_trans_frames <- function(m, type = "NAME"){
   dat$type <- type 
   return( dat )   
 }
-
 
 
 scale_comparison_df <- function( x ) { 

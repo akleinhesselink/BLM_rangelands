@@ -223,16 +223,15 @@ trend_variance_table <-
   trend_variance_table %>% 
   mutate( scale = factor(scale, levels = c('office', 'allotment', 'pixel'), ordered = T))
 
-
 varplot <- 
   trend_variance_table %>% 
   mutate( type_label = str_replace_all(type_label, c('AFG' = 'Annual', 'PFG' = 'Perennial'))) %>% 
   filter( extraction_number == 4) %>% 
   ggplot(aes( x = type_label, y = vcov, fill = scale )) + 
   geom_bar(stat = 'identity')  + 
-  geom_text( aes( label = bar_lab, y = y_pos), size = 3) + 
+  geom_text( aes( label = bar_lab, y = y_pos), size = 2.4) + 
   scale_fill_manual(values = var_cols, name = 'Scale') + 
-  ylab( "Trend Variance") + 
+  ylab( "Group-level Trend Variance") + 
   theme_bw() + 
   theme(axis.title.x = element_blank(), 
         axis.text.x = element_text( angle = -50, hjust = 0), 

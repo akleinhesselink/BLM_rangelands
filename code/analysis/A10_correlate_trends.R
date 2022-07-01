@@ -109,11 +109,11 @@ bgr_ranef2 <- format_ranef_trends(m_bgr_allotment, type = 'Bare', model_scale = 
 shr_ranef2 <- format_ranef_trends(m_shr_allotment, type = 'Shrub', model_scale = 'Allotment')
 
 get_fixTrends <- function( model , type ) { 
-  emtrends(model, ~ ecoregion, "year2") %>% 
+  emtrends(model, ~ ecoregion, "t") %>% 
     data.frame() %>% 
     mutate( scale = 'ecoregion', model_scale = 'Allotment', type = type) %>% 
     rename( "ID" = ecoregion) %>%
-    rename( 'trend' = year2.trend) %>% 
+    rename( 'trend' = t.trend) %>% 
     select( type , scale, ID, trend, model_scale)
     
 }
@@ -281,17 +281,19 @@ make_panel <-
 
 # First one in pair goes on y-axis 
 
-p1 <- make_panel(sel_pair = 'Annual_Bare', all_pairs, label_df = corplot_labels, title_text = 'Annual vs. Bare')
-p2 <- make_panel(sel_pair = 'Annual_Perennial', all_pairs, label_df = corplot_labels, title_text = 'Annual vs. Perennial')
-p3 <- make_panel(sel_pair = 'Annual_Shrub', all_pairs, label_df = corplot_labels, title_text = 'Bare vs. Perennial')
-p4 <- make_panel(sel_pair = 'Bare_Perennial', all_pairs, label_df = corplot_labels, title_text = 'Shrub vs. Perennial')
-p5 <- make_panel(sel_pair = 'Bare_Shrub', all_pairs, label_df = corplot_labels, title_text = 'Annual vs. Shrub')
-p6 <- make_panel(sel_pair = 'Perennial_Shrub', all_pairs, label_df  = corplot_labels, title_text = 'Bare vs. Shrub')
+corplot_labels
 
-ggsave(plot = grid.arrange( p1, p2, p3, p4, p5, p6, nrow = 3, ncol = 2), 
+#p1 <- make_panel(sel_pair = 'Annual_Bare', all_pairs, label_df = corplot_labels, title_text = 'A) Annual vs. Bare')
+#p2 <- make_panel(sel_pair = 'Annual_Perennial', all_pairs, label_df = corplot_labels, title_text = 'B) Annual vs. Perennial')
+p3 <- make_panel(sel_pair = 'Annual_Shrub', all_pairs, label_df = corplot_labels, title_text = 'A) Annual vs. Shrub')
+p4 <- make_panel(sel_pair = 'Bare_Perennial', all_pairs, label_df = corplot_labels, title_text = 'B) Bare vs. Perennial')
+p5 <- make_panel(sel_pair = 'Bare_Shrub', all_pairs, label_df = corplot_labels, title_text = 'C) Bare vs. Shrub')
+p6 <- make_panel(sel_pair = 'Perennial_Shrub', all_pairs, label_df  = corplot_labels, title_text = 'D) Perennial vs. Shrub')
+
+ggsave(plot = grid.arrange( p3, p4, p5, p6, nrow = 4, ncol = 1), 
        filename =  'output/figures/Fig_A3_trend_correlations.png', 
-       width = 14, 
-       height = 8, 
+       width = 8, 
+       height = 9, 
        units = 'in', 
        dpi = 600)
 

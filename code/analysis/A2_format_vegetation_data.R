@@ -14,7 +14,7 @@ allotments <- read_csv('data/temp/allotment_info.csv') %>%
 annual_data <- 
   read_csv('data/temp/annual_data.csv') %>% 
   rename( type = name )  %>%
-  filter( year  > 1990  & year < 2021) 
+  filter( year  > 1990  & year < 2021)
 
 year <- annual_data %>% distinct(year ) %>% pull( year )
 type <- annual_data %>% distinct( type ) %>% pull(type)
@@ -28,7 +28,9 @@ annual_data <-
   expand.grid( uname = uname, year =  year, type = type) %>%
   left_join( annual_data , by = c('uname', 'year', 'type'))  %>% 
   select( - unit ) %>% 
-  left_join( units ) 
+  left_join( units )  %>% 
+  ungroup() %>%
+  mutate( t = year - min(year))
 
 # ------------------------ # 
 # Cover: 
@@ -59,13 +61,17 @@ cover <-
   ungroup() %>% 
   left_join( allotments) %>% 
   filter( !is.na(ecoregion ) ) %>% 
+  group_by( ecoregion, OFFICE, unit, type) %>% 
+  filter( n_distinct(uname) > 1 ) %>% 
   ungroup() %>% 
   group_by( type, unit ) %>% 
     split(f = .$type ) 
 
 cover <- cover %>% lapply( 
   function(x) { 
-    x %>% mutate( value2 = scale(log(value))) %>%
+    x %>% mutate( 
+      log_value = log(value), 
+      value2 = scale(log(value))) %>%
       mutate( year2 = scale(year), 
               hectares2 = scale(hectares, center = F)) }) 
 
@@ -84,6 +90,9 @@ prod <- annual_data %>%
   ungroup() %>% 
   left_join( allotments) %>% 
   filter( !is.na(ecoregion)) %>%
+  group_by( ecoregion, OFFICE, unit, type) %>% 
+  filter( n_distinct(uname) > 1 ) %>% 
+  ungroup() %>% 
   split(f = .$type ) 
 
 prod <- 
@@ -91,7 +100,7 @@ prod <-
   lapply( function(x){ 
     x %>% 
       mutate( value2 = scale(log(value)), 
-              value1 = log(value)) %>%
+              log_value = log(value)) %>% 
       mutate( year2 = scale(year), 
               hectares2 = scale(hectares, center = F ))
   }) 

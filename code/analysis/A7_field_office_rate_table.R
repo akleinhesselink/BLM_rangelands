@@ -7,79 +7,57 @@ library(emmeans)
 source('code/analysis/functions.R')
 source('code/analysis/parameters.R')
 
-trend_scales <- read_csv('data/temp/trend_scales.csv')
-
 # ------ 
-cover_model_files <- dir(path = 'output', pattern = '.*_cover_trend_model.rds', full.names = T)
-cover_models <- lapply(cover_model_files, read_rds)
-types  <- c( str_extract( cover_model_files, pattern = '[A-Z]+') )
-types <- factor(types, labels = c('Annual', 'Bare', 'Perennial', 'Shrub', 'Tree'))
-names( cover_models ) <- types 
+files <- dir( 'output', '*_(cover|NPP)_group_trends.csv', full.names = T)
+type <- str_extract( basename(files), pattern = '[A-Z]+')
+unit <- str_extract( basename(files), pattern = 'cover|agb|NPP')
+out <- list() 
 
-cover_att <- lapply( cover_models, function(x) attributes( x@frame$value2) )
-cover_year_att <- lapply( cover_models, function(x) attributes( x@frame$year2) )
+for( i in 1:length(files)){ 
+  out[[i]] <- 
+    read_csv(files[i]) %>% 
+    distinct( ecoregion, office_label, ecoregion_trend, office_trend ) %>% 
+    mutate( full_office_trend = ecoregion_trend + office_trend ) %>% 
+    mutate( type = type[i]) %>% 
+    mutate( unit = unit[i]) %>% 
+    mutate( Office = str_extract( office_label, '[ A-Z-]+$'))
+}
 
-pred_grid <- lapply( types , function( x ) { 
-  m <- cover_models[[x]]
-  m@frame %>% 
-    mutate( type = x, unit = 'Cover') %>% 
-    filter( year2 == max(year2) | year2 == min(year2)) %>% 
-    distinct(unit, type, year2, ecoregion, OFFICE) %>% 
-    arrange(ecoregion, OFFICE, year2) %>% 
-    mutate( yhat = predict( m , newdata = . , re.form = ~ (year2 | ecoregion:OFFICE))) %>% 
-    group_by( unit, type, ecoregion, OFFICE ) %>% 
-    summarise( rate = (yhat[which.max(year2)] - yhat[which.min(year2)])/(max(year2) - min(year2)))
-})
+all_field_office_rates <- do.call(rbind, out ) 
 
-cover_trends <- do.call(rbind, pred_grid) %>% 
-  left_join(trend_scales, by = c('unit', 'type')) %>% 
-  mutate( bt_trend = rate*trend_unit ) %>% 
-  select(unit, type, ecoregion, OFFICE, rate, bt_trend ) %>% 
-  select( -rate ) %>% 
-  unite( c(type, unit), col = 'type') %>% 
-  pivot_wider( id_cols = c('OFFICE', 'ecoregion'), names_from = 'type', values_from = 'bt_trend')
-
-
-# Production Trends
-npp_model_files <- dir(path = 'output', pattern = '.*_NPP_trend_model.rds', full.names = T)
-npp_models <- lapply(npp_model_files, read_rds)
-types  <- c( str_extract( npp_model_files, pattern = '[A-Z]+') )
-types <- factor(types, labels = c('Annual', 'Perennial'))
-names( npp_models ) <- types 
-
-npp_att <- lapply( npp_models, function(x) attributes( x@frame$value2) )
-npp_year_att <- lapply( npp_models, function(x) attributes( x@frame$year2) )
-
-
-pred_grid <- lapply( types , function( x ) { 
-  m <- npp_models[[x]]
-  m@frame %>% 
-    mutate( type = x, unit = 'AGB' ) %>% 
-    filter( year2 == max(year2) | year2 == min(year2)) %>% 
-    distinct(unit, type, year2, ecoregion, OFFICE) %>% 
-    arrange(ecoregion, OFFICE, year2) %>% 
-    mutate( yhat = predict( m , newdata = . , re.form = ~ (year2 | ecoregion:OFFICE))) %>% 
-    group_by( unit, type, ecoregion, OFFICE ) %>% 
-    summarise( rate = (yhat[which.max(year2)] - yhat[which.min(year2)])/(max(year2) - min(year2)))
-})
-
-npp_trends <- do.call(rbind, pred_grid) %>% 
-  left_join(trend_scales, by = c('unit', 'type')) %>% 
-  mutate( bt_trend = rate*trend_unit ) %>% 
-  select(unit, type, ecoregion, OFFICE, rate, bt_trend ) %>% 
-  select( -rate ) %>% 
-  unite( c(type, unit), col = 'type') %>% 
-  pivot_wider( id_cols = c('OFFICE', 'ecoregion'), names_from = 'type', values_from = 'bt_trend')
-
-office_trends <- cover_trends %>%
-  left_join(npp_trends, by = c('OFFICE', 'ecoregion'))
-
-read_csv('data/temp/allotment_info.csv') %>%
-  distinct( ecoregion, ADMIN_ST, DISTRICT, OFFICE ) %>% 
-  left_join( office_trends) %>% 
-  arrange( ecoregion, ADMIN_ST, DISTRICT, OFFICE ) %>%  
-  write_csv('output/tables/field_office_rates.csv')
+all_field_office_rates %>% 
+  select( type, unit, ecoregion, Office, office_label, ecoregion_trend, office_trend, full_office_trend) %>% 
+  arrange( type, unit, ecoregion, Office ) %>% 
+  write_csv('output/all_field_office_rates.csv')
 
 
 
+# Plot Mediterranean California PFG  
+allotments <- read_csv('data/temp/allotment_info.csv') %>% 
+  filter( ecoregion == 'Mediterranean California')
+
+pfg_dat <- read_csv('data/temp/annual_data.csv') %>%  
+  filter( unit == 'cover', name == 'PFG')  %>%
+  left_join(allotments) %>% 
+  filter( !is.na( ecoregion ))
+
+pfg_dat %>% 
+  ggplot( aes( x = year, y = value )) + 
+  geom_line( aes( group = uname ), alpha = 0.1) + 
+  stat_summary( aes( group = OFFICE ), geom = 'line', fun = 'mean') + 
+  geom_smooth(se = F, method = 'lm') + 
+  geom_vline(aes(xintercept = 1991)) + 
+  facet_wrap( ~ OFFICE) 
+
+pfg_dat %>% 
+  filter( year > 1990 ) %>%
+  filter( year < 2021) %>% 
+  mutate( decade = cut( year, c('1990', '2001', '2011', '2021'), labels = c('90s', '00s', '10s'))) %>% 
+  group_by( OFFICE, decade ) %>% 
+  summarise( avg_cover = mean (value ), sd_cover = sd(value ) ) %>% 
+  ggplot( aes( x = OFFICE , y = avg_cover  )) + 
+  geom_bar(stat = 'identity', aes( fill = decade), position = position_dodge()) + 
+  theme( axis.text.x = element_text( angle = -40, hjust = 0 )) + 
+  ylab( 'Perennial forb and grass cover') + 
+  ggtitle('Mediterranean California')
 

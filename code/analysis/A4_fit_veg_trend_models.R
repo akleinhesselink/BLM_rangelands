@@ -11,22 +11,24 @@ source('code/analysis/parameters.R')
 load('data/analysis_data/cover.rda')
 attach(cover)
 
-control_lmer$optCtrl$eval.max <- 1e8
-control_lmer$optCtrl$iter.max <- 1e8
+control_lmer$optCtrl$eval.max <- 1e9
+control_lmer$optCtrl$iter.max <- 1e9
 
-trend_formula <- formula(value2 ~ year2 * ecoregion +
-    (year2 | ecoregion:OFFICE ) + 
-    (year2 | uname) 
+trend_formula <- formula(log_value ~ t * ecoregion +
+    (t | ecoregion:OFFICE ) + 
+    (t | uname) 
 )
 
-trend_formula2 <- update(trend_formula, . ~ . - year2:ecoregion)
+trend_formula2 <- update(trend_formula, . ~ . - t:ecoregion)
 trend_formula3 <- update(trend_formula2, . ~ . - ecoregion)
-trend_formula4 <- update(trend_formula2, . ~ . - year2)
+trend_formula4 <- update(trend_formula2, . ~ . - t)
 
 # Now run with all data 
 m_afg_ML <- lmer(data = AFG, 
                trend_formula, 
                control = control_lmer, REML = F)
+
+summary(m_afg_ML)
 
 m_afg2 <- lmer(data = AFG, trend_formula2, control_lmer, REML = F)
 m_afg3 <- lmer(data = AFG, trend_formula3, control_lmer, REML = F)
