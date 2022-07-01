@@ -109,6 +109,8 @@ variance_analysis <- function( df, extraction_number){
   
   write_csv( trend_summary, paste0( 'output/tables/Ecoregion_trend_summary_pixel_extraction:', 
                                     extraction_number, '.csv'))
+  
+  # Show trends plot for pixel-scale model 
   # p1 <- trend_summary %>% 
   #   mutate( type = factor(type, levels = u_type, ordered = T)) %>% 
   #   mutate( ecoregion = factor(ecoregion, levels = u_ecoregion, ordered = T)) %>% 
@@ -184,31 +186,6 @@ variance_analysis <- function( df, extraction_number){
   trend_variance_table %>% 
     write_csv(paste0('output/tables/trend_variance_table', extraction_number, '.csv'))
 }
-# 
-# df1 <- read_csv('data/RAP_EE_exports/drive-download-20220623T143258Z-001/RAP_allotment_pixel_samples1.csv') %>% 
-#   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
-#   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
-# 
-# variance_analysis(df1, extraction_number = 1)
-# 
-# df2 <- read_csv('data/RAP_EE_exports/drive-download-20220623T143258Z-001/RAP_allotment_pixel_samples2.csv') %>% 
-#   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
-#   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
-# 
-# variance_analysis(df2, extraction_number = 2)
-# 
-# df3 <- read_csv('data/RAP_EE_exports/drive-download-20220623T143258Z-001/RAP_allotment_pixel_samples3.csv') %>% 
-#   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
-#   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
-# 
-# variance_analysis(df3, extraction_number = 3)
-# 
-# df6 <- read_csv('data/RAP_EE_exports/drive-download-20220624T013905Z-001/RAP_allotment_pixel_samples6.csv') %>% 
-#   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
-#   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
-# 
-# variance_analysis(df6, extraction_number = 6)
-# 
 
 df4 <- read_csv('data/RAP_EE_exports/drive-download-20220624T051641Z-001/RAP_allotment_pixel_samples4.csv') %>% 
   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
@@ -244,34 +221,3 @@ ggsave( varplot,
         units = 'in', dpi = 600
 )
 
-
-# afg_m <- read_rds('data/temp/afg_pixel_trends_model_extraction_n4.rds')
-# 
-# afg_m2 <- update( afg_m, . ~ . - (t|pixel))
-# afg_m3 <- update( afg_m2, . ~ . - (t|uname))
-# afg_m4 <- lm(data = afg_m3@frame, value ~ t*ecoregion)
-# 
-# VarExp <- rbind(
-#   MuMIn::r.squaredGLMM(afg_m), 
-#   MuMIn::r.squaredGLMM(afg_m2), 
-#   MuMIn::r.squaredGLMM(afg_m3), 
-#   MuMIn::r.squaredGLMM(afg_m4)
-# ) 
-# 
-# VarExp %>% 
-#   data.frame() %>% 
-#   mutate( model = c('m1', 'm2', 'm3', 'm4')) %>%
-#   select( - R2m) %>% 
-#   pivot_wider( names_from = model, values_from = R2c) %>% 
-#   mutate( m1vexp = (m1 - m2)/m1, 
-#           m2vexp = (m2 - m3)/m1, 
-#           m3vexp = (m3 - m4)/m1)
-# 
-# VarExp %>% 
-#   data.frame() %>% 
-#   mutate( model = c('m1', 'm2', 'm3', 'm4')) %>%
-#   select( - R2m) %>% 
-#   pivot_wider( names_from = model, values_from = R2c) %>% 
-#   mutate( m1vexp = (m1 - m2)/m1, 
-#           m2vexp = (m2 - m3)/m1, 
-#           m3vexp = (m3 - m4)/m1)

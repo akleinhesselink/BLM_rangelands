@@ -1,7 +1,7 @@
 rm(list = ls())
 library(tidyverse)
 
-SpeciesState <- read_csv('data/AIM_speciesState_table.csv')
+SpeciesState <- read_csv('data/AIM/AIM_speciesState_table.csv')
 
 
 formatChars <- function(x) {

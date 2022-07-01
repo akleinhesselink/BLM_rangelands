@@ -144,6 +144,7 @@ if(!dir.exists('data/temp/BLM_field_offices_cleaned/')){
 offices_fix_names %>%  
   filter( ADMIN_ST!="AK") %>% 
   st_cast('MULTIPOLYGON') %>% 
+  st_make_valid() %>% 
   st_write('data/temp/BLM_field_offices_cleaned/field_offices.shp', 
            layer = 'field_offices', append = F)
 
@@ -188,14 +189,6 @@ allotments_clean <- allotments_clean %>%
   filter( hectares > 1) %>% 
   arrange(ID) %>% 
   mutate( uname = row_number())
-
-
-offices_fix_names %>% 
-  st_cast( 'POLYGON') %>% 
-  st_make_valid() %>% 
-  st_write('data/temp/BLM_field_offices_cleaned/field_offices.shp', append = F, 
-           layer = 'offices')
-
 
 # Join RAS data 
 RAS_info <- read_csv('data/RAS_data/Allotment Information Report-All Allotments.csv') %>% 

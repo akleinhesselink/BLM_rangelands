@@ -65,5 +65,3 @@ offices %>%
   left_join( office_trends, by = c('ADMU_NA' = 'office') ) %>% 
   st_write('data/temp/BLM_field_offices_cleaned/field_offices_with_trends.shp', append = F)
 
-read_sf('data/temp/BLM_field_offices_cleaned/field_offices_with_trends.shp')
-  
