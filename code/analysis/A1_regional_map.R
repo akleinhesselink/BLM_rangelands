@@ -1,16 +1,44 @@
 rm(list = ls() )
+
+library(raster)
+library(tidyverse)
+
+focal_allot <- raster::brick( 'data/RAP_EE_exports/example_allotment_cover.tif')
+
+afgc0 <- 
+  focal_allot$AFG %>% 
+  as.data.frame(xy = T) 
+
+afgc1 <- 
+  focal_allot$AFG_1 %>% 
+  as.data.frame(xy = T) %>%
+  rename( 'AFG' = 'AFG_1')
+
+afgc2 <- 
+  focal_allot$AFG_2 %>% 
+  as.data.frame(xy = T) %>%
+  rename( 'AFG' = 'AFG_2')
+
+unloadNamespace( 'raster')
 library(tidyverse)
 library(sf)
-unloadNamespace( 'raster')
-
 source('code/analysis/functions.R')
 source('code/analysis/parameters.R')
 
 allotment_info <- read_csv('data/temp/allotment_info.csv') %>% 
   filter( ecoregion != 'Marine West Coast Forest')
 
-BLM_districts <- read_rds('data/temp/cleaned_BLM_district_shapes.rds')
-BLM_offices <- read_rds('data/temp/cleaned_BLM_field_office_shapes.rds')
+#BLM_districts <- read_rds('data/temp/cleaned_BLM_district_shapes.rds')
+BLM_districts <- st_read( 'data/spatial/BLM_National_Administrative_Units/admu.gdb/', layer = 'blm_natl_admu_dist_poly_webpub') %>%
+  filter( ADMIN_ST != "AK") %>% 
+  st_cast('MULTIPOLYGON') %>% 
+  st_make_valid()  %>% 
+  st_transform( crs = 'epsg:5070')
+
+#BLM_offices <- read_rds('data/temp/cleaned_BLM_field_office_shapes.rds')
+BLM_offices <- st_read('data/temp/BLM_field_offices_cleaned/field_offices.shp', 
+         layer = 'field_offices')
+
 ecoregions <- read_rds('data/temp/simplified_ecoregion_shapefile.rds') %>% 
   filter( ecoregion != 'Marine West Coast Forest') 
 allotment_shapes <- sf::read_sf('data/temp/allotments/allotments_clean.shp')
@@ -53,7 +81,7 @@ BLM_districts <- BLM_districts %>%
   st_make_valid()
 
 BLM_offices <- BLM_offices %>%
-  filter( BLM_ORG_TYPE == 'Field', PARENT_NAME != 'OKLAHOMA FIELD OFFICE') %>% 
+  filter( ADMU_NA != 'OKLAHOMA FIELD OFFICE') %>% 
   st_transform(crs = st_crs(allotment_shapes_ecoregion)) %>% 
   st_simplify(dTolerance = 100) %>% 
   st_make_valid()
@@ -104,7 +132,7 @@ full_map <-
     #geom_sf(data = BLM_districts, fill = NA, color = NA) + 
     #xlim( c(-126, -95)) + 
     #ylim( c(31.5, 48.5)) + 
-    geom_sf(data = BLM_offices %>% distinct(Shape), 
+    geom_sf(data = BLM_offices %>% distinct(geometry), 
             fill = NA, size = 0.1, alpha = 0.5) + 
     geom_sf(fill = NA, size = 0.2, alpha = 0.5) + 
     theme( legend.position = c(0.9, 0.3), 
@@ -132,11 +160,11 @@ regional_map <-
            color = 'white', size = 0.05) + 
   xlim( c(-121, -111)) + 
   ylim( c(36.2, 45.5)) + 
-  geom_sf(data = BLM_offices %>% distinct(Shape), 
+  geom_sf(data = BLM_offices %>% distinct(geometry), 
           fill = NA, size = 0.1, alpha = 0.8) + 
   geom_sf(fill = NA, size = 0.5, alpha = 0.5) + 
-  geom_sf(data = BLM_offices %>% distinct(Shape) %>% 
-            filter( ADM_UNIT_CD == "IDT01000"), 
+  geom_sf(data = BLM_offices %>% 
+            filter( ADM_UNI == "IDT01000") %>% distinct(geometry) , 
           fill = NA, size = 0.4, color = 'blue', alpha = 0.3) + 
   ggspatial::annotation_scale( location = 'br')  + 
   theme( legend.position = 'none', 
@@ -156,59 +184,41 @@ ggsave(
   )
 
 # field office map
-library(raster)
-focal_allot <- raster::brick( 'data/RAP_EE_exports/example_allotment_cover (1).tif')
-focal_allot <- projectRaster(focal_allot , crs = CRS('EPSG:4326')) 
+# focal allotment loaded at the head of script 
+afgc0$AFG[afgc0$AFG == 0 ] <- NA
 
-afgc0 <- 
-  focal_allot$AFGC %>% 
-  as.data.frame(xy = T) 
+afgc1$AFG[afgc1$AFG == 0 ] <- NA
 
-afgc0$AFGC[afgc0$AFGC == 0 ] <- NA
-
-afgc1 <- 
-  focal_allot$AFGC_1 %>% 
-  as.data.frame(xy = T) %>%
-  rename( 'AFGC' = 'AFGC_1')
-
-afgc1$AFGC[afgc1$AFGC == 0 ] <- NA
-
-afgc2 <- 
-  focal_allot$AFGC_2 %>% 
-  as.data.frame(xy = T) %>%
-  rename( 'AFGC' = 'AFGC_2')
-
-afgc2$AFGC[afgc2$AFGC == 0 ] <- NA
+afgc2$AFG[afgc2$AFG == 0 ] <- NA
 
 unloadNamespace('raster')
 source('code/analysis/parameters.R')
 
 BLM_offices <- 
-  read_rds('data/temp/cleaned_BLM_field_office_shapes.rds') %>% 
+  BLM_offices %>% 
   st_transform( crs = 'EPSG:4326') %>% 
-  filter( str_detect( ADM_UNIT_CD , 'ID|NV'))
+  filter( str_detect( ADM_UNI, 'ID|NV'))
 
 #
 Jarbidge_FO <- 
   BLM_offices %>% 
-  filter( ADM_UNIT_CD == "IDT01000" ) 
+  filter( ADM_UNI == "IDT01000" ) 
 
-Jarbidge_FO <- 
-  Jarbidge_allotments %>% 
-  dplyr::select( geometry) %>%
-  bind_rows(
-  Jarbidge_FO %>% 
-    dplyr::select(Shape) %>% 
-    rename('geometry' = Shape) ) %>% 
-  summarise( geometry = st_union(geometry))  %>%
-  st_make_valid()
 
 Jarbidge_allotments <- 
   allotment_shapes %>% 
   filter( ADMIN_S == "ID", ADM_OFC == 'T01000') %>% 
   st_transform(crs = 'EPSG:4326')
 
-Jarbidge_FO %>% 
+Jarbidge_FO <- 
+  Jarbidge_allotments %>% 
+  dplyr::select( geometry) %>%
+  bind_rows(
+  Jarbidge_FO) %>% 
+  summarise( geometry = st_union(geometry))  %>%
+  st_make_valid()
+
+jarbidge_map <- Jarbidge_FO %>% 
   ggplot() + 
   geom_sf(size = 0.5, 
           fill = 'white') + 
@@ -216,11 +226,11 @@ Jarbidge_FO %>%
           size = 0.2, 
           fill = ecoregion_colors['W Cold Deserts'], 
           color = 'white')  + 
-  geom_sf(data = Jarbidge_allotments %>% filter( uname == 5339), 
+  geom_sf(data = Jarbidge_allotments %>% filter( uname == 4304), 
           size = 0.8, 
           fill = ecoregion_colors['W Cold Deserts'], 
           color = 'blue', show.legend = F)  + 
-  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFGC ), 
+  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFG ), 
              color = NA, show.legend = F) + 
   scico::scale_fill_scico(palette = 'bamako', 
                           direction = -1, 
@@ -235,14 +245,15 @@ Jarbidge_FO %>%
         axis.text = element_blank(),
         axis.ticks = element_blank(), 
     axis.title =  element_blank()) +
-  ggspatial::annotation_scale( location = 'br')  +
-  ggsave( 'output/figures/JarbidgeFieldOffice.png', 
+  ggspatial::annotation_scale( location = 'br') 
+
+ggsave(jarbidge_map,  filename = 'output/figures/JarbidgeFieldOffice.png', 
           width = 4, height = 5)
 
 # -------------------------------- # 
 
 # single allotment --------- # 
-Jarbidge_FO %>% 
+single_allot1 <- Jarbidge_FO %>% 
   ggplot() + 
   geom_sf(size = 0.5, 
           fill = 'white') + 
@@ -251,9 +262,9 @@ Jarbidge_FO %>%
           alpha = 0.5, 
           fill = ecoregion_colors['W Cold Deserts'], 
           color = 'white')  + 
-  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFGC ), 
+  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFG ), 
              color = NA, show.legend = F, alpha = 0.8) +   
-  geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
+  geom_sf( data = Jarbidge_allotments %>% filter( uname == 4304),
            fill = ecoregion_colors['West Cold Deserts'], color = 'black', size = 0.5) + 
   scico::scale_fill_scico(palette = 'bamako', 
                           direction = -1, 
@@ -270,19 +281,20 @@ Jarbidge_FO %>%
         panel.grid = element_blank(), 
         axis.text = element_blank(),
         axis.ticks = element_blank(),
-        axis.title =  element_blank()) +
-  #ggspatial::annotation_scale( location = 'br')  + 
-  ggsave( 'output/figures/SingleAllotment.png', bg = 'transparent', 
+        axis.title =  element_blank())
+  #ggspatial::annotation_scale( location = 'br')  
+
+ggsave( single_allot1, filename = 'output/figures/SingleAllotment.png', bg = 'transparent', 
           width = 4, height = 5)
 
 # Floating image on white 
-Jarbidge_FO %>%
+allotment_year_one_floating <- Jarbidge_FO %>%
   ggplot() + 
-  geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
+  geom_sf( data = Jarbidge_allotments %>% filter( uname == 4304),
            fill = ecoregion_colors['West Cold Deserts'], color = 'black', size = 0.5) + 
-  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFGC ), 
+  geom_tile( data = afgc0, aes( x = x, y= y, fill = AFG ), 
              color = NA, show.legend = F, alpha = 0.8) +   
-  geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
+  geom_sf( data = Jarbidge_allotments %>% filter( uname == 4304),
            fill = NA, color = 'black', size = 0.6) +
   scico::scale_fill_scico(palette = 'bamako', 
                           direction = -1, 
@@ -297,19 +309,20 @@ Jarbidge_FO %>%
          plot.background = element_rect(fill = 'transparent', colour = NA),
          axis.text = element_blank(),
          axis.ticks = element_blank(),
-         axis.title =  element_blank()) +
-  #ggspatial::annotation_scale( location = 'br')   + 
-  ggsave( 'output/figures/SingleAllotment_year1.png', 
+         axis.title =  element_blank())
+#ggspatial::annotation_scale( location = 'br')   + 
+ggsave(allotment_year_one_floating, filename = 'output/figures/SingleAllotment_year1.png', 
           width = 4, height = 5, bg = 'transparent')
 
 
-Jarbidge_FO %>%
+allotment_year_two_floating <- 
+  Jarbidge_FO %>%
   ggplot() + 
-  geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
+  geom_sf( data = Jarbidge_allotments %>% filter( uname == 4304),
            fill = ecoregion_colors['West Cold Deserts'], color = 'black', size = 0.5) + 
-  geom_tile( data = afgc1, aes( x = x, y= y, fill = AFGC ), 
+  geom_tile( data = afgc1, aes( x = x, y= y, fill = AFG ), 
              color = NA, show.legend = F, alpha = 0.8) +   
-  geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
+  geom_sf( data = Jarbidge_allotments %>% filter( uname == 4304),
            fill = NA, color = 'black', size = 0.6) +
   scico::scale_fill_scico(palette = 'bamako', 
                           direction = -1, 
@@ -324,18 +337,21 @@ Jarbidge_FO %>%
          plot.background = element_rect(fill = 'transparent', colour = NA),
          axis.text = element_blank(),
         axis.ticks = element_blank(),
-        axis.title =  element_blank()) +
+        axis.title =  element_blank()) 
   #ggspatial::annotation_scale( location = 'br')   + 
-  ggsave( 'output/figures/SingleAllotment_year2.png', 
+
+
+ggsave( allotment_year_two_floating, filename = 'output/figures/SingleAllotment_year2.png', 
         width = 4, height = 5, bg = 'transparent')
 
 #
 
-Jarbidge_FO %>%
+allotment_year_three_floating <- 
+  Jarbidge_FO %>%
   ggplot() + 
   geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
            fill = ecoregion_colors['West Cold Deserts'], color = 'black', size = 0.5) + 
-  geom_tile( data = afgc2, aes( x = x, y= y, fill = AFGC ), 
+  geom_tile( data = afgc2, aes( x = x, y= y, fill = AFG ), 
              color = NA, show.legend = F, alpha = 0.8) +   
   geom_sf( data = Jarbidge_allotments %>% filter( uname == '5339'),
            fill = NA, color = 'black', size = 0.1) +
@@ -353,9 +369,11 @@ Jarbidge_FO %>%
          axis.title =  element_blank(), 
          panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
          plot.background = element_rect(fill = 'transparent', colour = NA)) +
-  ggspatial::annotation_scale( location = 'br')  + 
-  ggsave( 'output/figures/SingleAllotment_year3.png', 
-          width = 1.79, height = 2.24, bg = 'transparent')
+  ggspatial::annotation_scale( location = 'br') 
+
+
+ggsave(allotment_year_three_floating , filename = 'output/figures/SingleAllotment_year3.png', 
+          width = 4, height = 5, bg = 'transparent')
 
 
 
