@@ -28,7 +28,7 @@ all_field_office_rates <- do.call(rbind, out )
 all_field_office_rates %>% 
   select( type, unit, ecoregion, Office, office_label, ecoregion_trend, office_trend, full_office_trend) %>% 
   arrange( type, unit, ecoregion, Office ) %>% 
-  write_csv('output/all_field_office_rates.csv')
+  write_csv('output/tables/field_office_rates.csv')
 
 
 
