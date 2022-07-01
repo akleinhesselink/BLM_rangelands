@@ -280,120 +280,157 @@ border: 0;
 
 </head>
 <body>
-<table class=" lightable-classic-2" style="font-family: &quot;Arial Narrow&quot;, &quot;Source Sans Pro&quot;, sans-serif; margin-left: auto; margin-right: auto;">
-<caption>Perennial:Cover</caption>
+<table class=" lightable-classic-2" style="font-size: 12px; font-family: times new roman; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">
+<b>Table A9:</b> Perennial Production Model Summary. 
+    Linear mixed effects model fit with <b>lmer</b> in R.
+                      Reference level (Intercept) is the AZ/NM Highlands ecoregion. 
+                      Response modeled on log-scale.</caption>
  <thead>
   <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:left;"> ecoregion </th>
-   <th style="text-align:right;"> t.trend </th>
-   <th style="text-align:right;"> SE </th>
-   <th style="text-align:right;"> df </th>
-   <th style="text-align:right;"> asymp.LCL </th>
-   <th style="text-align:right;"> asymp.UCL </th>
-   <th style="text-align:left;"> type </th>
-   <th style="text-align:left;"> measure </th>
-   <th style="text-align:left;"> sig </th>
+   <th style="text-align:right;"> Allotments </th>
+   <th style="text-align:right;"> Ecoregion:Office </th>
+   <th style="text-align:right;"> N </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> Perennial.1...17 </td>
-   <td style="text-align:left;"> AZ/NM
-Highlands </td>
-   <td style="text-align:right;"> -0.006 </td>
-   <td style="text-align:right;"> 0.003 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.011 </td>
-   <td style="text-align:right;"> -0.001 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:right;"> 20911 </td>
+   <td style="text-align:right;"> 198 </td>
+   <td style="text-align:right;"> 627330 </td>
+  </tr>
+</tbody>
+</table> <table class=" lightable-classic-2" style="font-size: 12px; font-family: times new roman; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">Random Effects</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;"> Group </th>
+   <th style="text-align:left;"> var1 </th>
+   <th style="text-align:right;"> Std.Dev. </th>
+   <th style="text-align:right;"> cor </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> allotment </td>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.3798 </td>
+   <td style="text-align:right;"> NA </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.2...18 </td>
-   <td style="text-align:left;"> E Cold Deserts </td>
-   <td style="text-align:right;"> -0.006 </td>
-   <td style="text-align:right;"> 0.001 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.009 </td>
-   <td style="text-align:right;"> -0.004 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:left;"> allotment </td>
+   <td style="text-align:left;"> trend </td>
+   <td style="text-align:right;"> 0.0066 </td>
+   <td style="text-align:right;"> -0.1263 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.3...19 </td>
-   <td style="text-align:left;"> Forested Mts </td>
-   <td style="text-align:right;"> -0.010 </td>
-   <td style="text-align:right;"> 0.001 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.012 </td>
-   <td style="text-align:right;"> -0.008 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:left;"> Ecoregion:Office </td>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:right;"> 0.6769 </td>
+   <td style="text-align:right;"> NA </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.4...20 </td>
-   <td style="text-align:left;"> Mediterranean
-California </td>
-   <td style="text-align:right;"> -0.045 </td>
-   <td style="text-align:right;"> 0.003 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.051 </td>
-   <td style="text-align:right;"> -0.039 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:left;"> Ecoregion:Office </td>
+   <td style="text-align:left;"> trend </td>
+   <td style="text-align:right;"> 0.0134 </td>
+   <td style="text-align:right;"> 0.3714 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.5...21 </td>
-   <td style="text-align:left;"> N Great Plains </td>
-   <td style="text-align:right;"> -0.003 </td>
-   <td style="text-align:right;"> 0.002 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.008 </td>
-   <td style="text-align:right;"> 0.001 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
+   <td style="text-align:left;"> Residual </td>
    <td style="text-align:left;">  </td>
+   <td style="text-align:right;"> 0.2584 </td>
+   <td style="text-align:right;"> NA </td>
+  </tr>
+</tbody>
+</table> <table class=" lightable-classic-2" style="font-size: 12px; font-family: times new roman; margin-left: auto; margin-right: auto;">
+<caption style="font-size: initial !important;">Coefficients</caption>
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Estimate </th>
+   <th style="text-align:right;"> Std. Error </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:right;"> 6.255 </td>
+   <td style="text-align:right;"> 0.2160 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.6...22 </td>
-   <td style="text-align:left;"> S Great Plains </td>
-   <td style="text-align:right;"> -0.009 </td>
-   <td style="text-align:right;"> 0.003 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.015 </td>
+   <td style="text-align:left;"> trend </td>
    <td style="text-align:right;"> -0.004 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:right;"> 0.0043 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.7...23 </td>
-   <td style="text-align:left;"> W Cold Deserts </td>
-   <td style="text-align:right;"> -0.007 </td>
-   <td style="text-align:right;"> 0.001 </td>
-   <td style="text-align:right;"> Inf </td>
-   <td style="text-align:right;"> -0.010 </td>
+   <td style="text-align:left;"> E Cold Deserts </td>
+   <td style="text-align:right;"> -0.122 </td>
+   <td style="text-align:right;"> 0.2433 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Forested Mts </td>
+   <td style="text-align:right;"> 0.541 </td>
+   <td style="text-align:right;"> 0.2318 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Mediterranean California </td>
    <td style="text-align:right;"> -0.005 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:right;"> 0.3389 </td>
   </tr>
   <tr>
-   <td style="text-align:left;"> Perennial.8...24 </td>
+   <td style="text-align:left;"> N Great Plains </td>
+   <td style="text-align:right;"> 0.958 </td>
+   <td style="text-align:right;"> 0.2914 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> S Great Plains </td>
+   <td style="text-align:right;"> 0.829 </td>
+   <td style="text-align:right;"> 0.3135 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> W Cold Deserts </td>
+   <td style="text-align:right;"> -0.311 </td>
+   <td style="text-align:right;"> 0.2426 </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> Warm Deserts </td>
-   <td style="text-align:right;"> -0.022 </td>
-   <td style="text-align:right;"> 0.002 </td>
-   <td style="text-align:right;"> Inf </td>
+   <td style="text-align:right;"> -1.696 </td>
+   <td style="text-align:right;"> 0.2673 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:E Cold Deserts </td>
+   <td style="text-align:right;"> -0.005 </td>
+   <td style="text-align:right;"> 0.0048 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:Forested Mts </td>
+   <td style="text-align:right;"> -0.006 </td>
+   <td style="text-align:right;"> 0.0046 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:Mediterranean California </td>
+   <td style="text-align:right;"> -0.055 </td>
+   <td style="text-align:right;"> 0.0067 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:N Great Plains </td>
+   <td style="text-align:right;"> 0.007 </td>
+   <td style="text-align:right;"> 0.0058 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:S Great Plains </td>
+   <td style="text-align:right;"> -0.003 </td>
+   <td style="text-align:right;"> 0.0062 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:W Cold Deserts </td>
+   <td style="text-align:right;"> -0.002 </td>
+   <td style="text-align:right;"> 0.0048 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> trend:Warm Deserts </td>
    <td style="text-align:right;"> -0.026 </td>
-   <td style="text-align:right;"> -0.019 </td>
-   <td style="text-align:left;"> Perennial </td>
-   <td style="text-align:left;"> Cover </td>
-   <td style="text-align:left;"> * </td>
+   <td style="text-align:right;"> 0.0053 </td>
   </tr>
 </tbody>
 </table>
