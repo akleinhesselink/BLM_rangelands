@@ -127,33 +127,11 @@ table <- MuMIn::model.sel(m_tree_ML, m_tree2, m_tree3, m_tree4) %>%
   kableExtra::kable(digits = 2, format = 'pipe')
 kableExtra::save_kable(table, file = 'output/tables/tree_model_comparison_table.md')
 
-
-
 m_tree <- lmer(data = TRE, trend_formula, control = control_lmer)
 ecoregion_effects <- get_ecoregion_trends(m_tree ) 
 random_effects <- get_blm_random_effects( m_tree)
 tree_trends <- blm_trend_summary( TRE, ecoregion_effects , random_effects)
 
-# Fit Woody Cover ------------------------------------------------ # 
-# m_woody_ML <- lmer(data = WOODY, 
-#                    trend_formula, 
-#                    control = control_lmer, REML = F)
-# 
-# m_woody2 <- lmer(data = WOODY, trend_formula2, control_lmer, REML = F)
-# m_woody3 <- lmer(data = WOODY, trend_formula3, control_lmer, REML = F)
-# m_woody4 <- lmer(data = WOODY, trend_formula4, control_lmer, REML = F)
-# 
-# table <- MuMIn::model.sel(m_woody_ML, m_woody2, m_woody3, m_woody4) %>% 
-#   data.frame() %>% 
-#   kableExtra::kable(digits = 2, format = 'pipe')
-# kableExtra::save_kable(table, file = 'output/tables/woody_model_comparison_table.md')
-# 
-# m_woody <- lmer(data = WOODY, trend_formula, control = control_lmer)
-# 
-# ecoregion_effects <- get_ecoregion_trends(m_woody ) 
-# random_effects <- get_blm_random_effects( m_woody)
-# woody_trends <- blm_trend_summary( WOODY, ecoregion_effects , random_effects)
-# 
 
 # ---------- Output 
 saveRDS(m_afg, file = 'output/AFG_cover_trend_model.rds')
@@ -175,7 +153,6 @@ write_csv(PFG_trends, file = 'output/PFG_cover_group_trends.csv')
 write_csv(bare_trends, file = 'output/BG_cover_group_trends.csv')
 write_csv(tree_trends, file = 'output/TREE_cover_group_trends.csv')
 write_csv(shrub_trends, file = 'output/SHR_cover_group_trends.csv')
-#write_csv(woody_trends, file = 'output/WOODY_cover_group_trends.csv')
 
 detach(cover )
 rm( cover ) 
@@ -246,14 +223,11 @@ pfg_NPP_trends <- blm_trend_summary( pfgNPP, pfg_fixed, pfg_random)
 
 saveRDS(m_afg_NPP, file = 'output/AFG_NPP_trend_model.rds')
 saveRDS(m_pfg_NPP, file = 'output/PFG_NPP_trend_model.rds')
-# saveRDS(m_herbaceous_NPP, file = 'output/HERB_NPP_trend_model.rds')
 
 write_csv(afg_NPP_trends, file = 'output/AFG_NPP_group_trends.csv')
 write_csv(pfg_NPP_trends, file = 'output/PFG_NPP_group_trends.csv')
-# write_csv(herbaceous_trends, file = 'output/HERB_NPP_group_trends.csv')
 
 save(m_afg_NPP_ML, m_afg_NPP2, m_afg_NPP3, m_afg_NPP4, file = 'output/all_annual_prod_models.rda')
 save(m_pfg_NPP_ML, m_pfg_NPP2, m_pfg_NPP3, m_pfg_NPP4, file = 'output/all_perennial_prod_models.rda')
-# save(m_herbaceous_NPP_ML, m_herbaceous_NPP2, m_herbaceous_NPP3, m_herbaceous_NPP4, file = 'output/all_herbaceous_prod_models.rda')
 
 rm( prod, m_afg_NPP, m_pfg_NPP)

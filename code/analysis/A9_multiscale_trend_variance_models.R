@@ -191,6 +191,13 @@ df4 <- read_csv('data/RAP_EE_exports/drive-download-20220624T051641Z-001/RAP_all
   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
 
+df4 %>% 
+  nrow() 
+  
+df4 %>% 
+  summarise( n_distinct(uname))
+
+df4 %>% head 
 variance_analysis(df4, extraction_number = 4)
 
 trend_variance_table <- read_csv('output/tables/trend_variance_table4.csv')

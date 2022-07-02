@@ -9,10 +9,10 @@ spp_attributes <- spp_attributes %>%
   filter(!str_detect( SCIENTIFIC , '=>')) 
 
 
-allotment_shapes <- read_sf('data/temp/allotments/allotments_with_cover_trends.shp')
+allotment_shapes <- read_sf('data/temp/allotments/allotments_with_trends.shp')
 AIM_species_raw <- read_csv('data/AIM/AIM_species_data/BLM_species_cover_2022-05-07_AK_edit.csv')
-AIM_plots <- read_sf('data/temp/AIM_plots_May17/aim_plots.shp')
-AIM_LMF <- read_sf( 'data/temp/AIM_LMF_plots_May17/AIM_LMF_plots.shp')
+AIM_plots <- read_sf('data/AIM/AIM_plots_May17/aim_plots.shp')
+AIM_LMF <- read_sf( 'data/AIM/AIM_LMF_plots_May17/AIM_LMF_plots.shp')
 
 AIM_species_raw <- AIM_species_raw %>% 
   filter( State != 'AK')

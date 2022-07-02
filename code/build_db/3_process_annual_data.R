@@ -27,6 +27,7 @@ write_csv(annual_data, 'data/temp/annual_data.csv')
 # Write Elevation 
 elevation <- elevation %>% rename( 'elevation' = mean )
 
-read_csv('data/temp/allotment_info.csv') %>% 
+read_csv('data/temp/allotment_info.csv') %>%
+  select(-elevation) %>%
   left_join( elevation, by = 'uname') %>% 
   write_csv( 'data/temp/allotment_info.csv')
