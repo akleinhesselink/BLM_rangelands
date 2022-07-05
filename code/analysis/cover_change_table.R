@@ -1,3 +1,5 @@
+rm(list = ls() ) 
+library(tidyverse)
 all <- read_csv('data/temp/annual_data.csv') 
 allotments <- read_csv( 'data/temp/allotment_info.csv')
 
