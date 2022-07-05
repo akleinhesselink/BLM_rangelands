@@ -10,3 +10,9 @@
 *.pdf
 *.jpeg
 .Rproj.user
+.DS_Store
+.RDataTmp
+data/AIM/*
+data/spatial/*
+*.pptx
+doc/ChrisHansen/*
