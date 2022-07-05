@@ -19,3 +19,10 @@ doc/ChrisHansen/*
 data/old_RAP_EE_exports/*
 data/temp/allotments/*
 data/temp/BLM_field_offices_cleaned/*
+output/tables/*.md
+QGIS_files/*
+doc/*
+manuscript/*
+data/AIM/*
+app/data/*
+app/rsconnect/*
