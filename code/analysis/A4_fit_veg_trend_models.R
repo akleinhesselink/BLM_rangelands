@@ -97,6 +97,7 @@ m_shrub_ML <- lmer(data = SHR,
                   trend_formula, 
                   control = control_lmer, REML = F)
 
+
 m_shrub2 <- lmer(data = SHR, trend_formula2, control_lmer, REML = F)
 m_shrub3 <- lmer(data = SHR, trend_formula3, control_lmer, REML = F)
 m_shrub4 <- lmer(data = SHR, trend_formula4, control_lmer, REML = F)
@@ -108,6 +109,7 @@ kableExtra::save_kable(table, file = 'output/tables/shrub_model_comparison_table
 
 
 m_shrub <- lmer(data = SHR, trend_formula, control = control_lmer)
+
 ecoregion_effects <- get_ecoregion_trends(m_shrub ) 
 random_effects <- get_blm_random_effects( m_shrub)
 

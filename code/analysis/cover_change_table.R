@@ -117,4 +117,3 @@ do.call( rbind, prod_change ) %>%
   write_csv('output/tables/average_prod_change_per_ecoregion.csv')
 
 
-

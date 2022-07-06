@@ -84,8 +84,6 @@ ggsave(ann_cover , filename = 'output/figures/Fig_Supp_annual_cover_gt_perennial
 
 
 # Make table 
-
-
 annual_cover_dominance_area <- 
   annual_cover_dominance_uname %>% 
   left_join(allotments %>% select( uname, hectares ), by = 'uname') %>% 
@@ -112,7 +110,26 @@ level_order <-
      "N Great Plains (5066)", "S Great Plains (838)", 
      "W Cold Deserts (3470)", "Warm Deserts (1171)", "Total (21009)")       
 
-annual_cover_dominance_ecoregion %>% 
+annual_cover_dominance_ecoregion <- 
+  annual_cover_dominance_uname %>% 
+  group_by( decade, ecoregion, annual_dom ) %>%
+  summarise( n = n() )  %>% 
+  bind_rows( total_annual_cover_dominance  ) %>% 
+  group_by( decade, ecoregion ) %>% 
+  mutate( frac = n/sum(n)) %>% 
+  ungroup() %>% 
+  arrange( ecoregion, decade ) %>% 
+  mutate( Dominance = factor(annual_dom, labels = c('more perennials', 'more annuals'))) %>% 
+  select( decade, ecoregion, Dominance , n ) %>% 
+  pivot_wider( names_from = Dominance, values_from = n , values_fill = 0) %>%
+  arrange( ecoregion, decade ) %>%
+  mutate( n_total = `more perennials` + `more annuals`) %>% 
+  mutate( frac_more_perennials = `more perennials`/n_total ) %>% 
+  mutate( frac_more_annuals = `more annuals`/n_total )    %>% 
+  select( decade, ecoregion, n_total, `more annuals`, frac_more_annuals )
+  
+annual_cover_dominance_ecoregion_table <- 
+  annual_cover_dominance_ecoregion %>% 
   filter( ecoregion != 'Marine West Coast Forest') %>% 
   arrange( ecoregion, decade ) %>%
   left_join( 
@@ -120,27 +137,28 @@ annual_cover_dominance_ecoregion %>%
               total_annual_cover_dominance_area) %>% select( - Dominance) ) %>%   
   mutate( hectares = replace_na(hectares, 0)) %>% 
   select( decade, ecoregion, `more annuals`, n_total, frac_more_annuals, hectares) %>% 
-  mutate( frac_more_annuals = paste0( round( 100*frac_more_annuals, 2), '%'), 
+  mutate( frac_more_annuals = paste0( round( 100*frac_more_annuals), '%'), 
           `Total area (1x10^3 ha)` = as.character( round( `hectares`/1e3, 2) )) %>% 
   mutate( `more annuals`  = as.character( `more annuals`)) %>% 
   mutate( ecoregion_label = paste0( ecoregion, ' (', n_total, ')')) %>%  
   select( - hectares) %>%  
-  pivot_longer(cols = c(`more annuals` , frac_more_annuals, `Total area (1x10^3 ha)`)) %>% 
-  pivot_wider( names_from = decade, values_from = value ) %>% 
-  select( ecoregion_label, name, `1980s`:`2010s`) %>% 
-  ungroup() %>% 
+  pivot_longer(cols = c(`more annuals` , frac_more_annuals, `Total area (1x10^3 ha)`))
+
+annual_cover_dominance_ecoregion_table %>% 
+  pivot_wider( names_from = name , values_from = value) %>% 
+  mutate( new_val = paste0( `more annuals`, ' (', frac_more_annuals, ')')) %>% 
+  select( ecoregion_label, decade, new_val, `Total area (1x10^3 ha)`) %>% 
+  pivot_longer( cols = c( `new_val`:`Total area (1x10^3 ha)` )) %>% 
+  unite( 'newName' , c(name, decade)) %>% 
+  pivot_wider( names_from = newName, values_from = value ) %>%  
+  select( ecoregion_label, contains( 'new_val'), contains('area')) %>% 
   mutate( ecoregion_label = factor(ecoregion_label)) %>%  
   mutate( ecoregion_label = factor( ecoregion_label, levels = level_order, ordered = T)) %>%   
   arrange( ecoregion_label) %>% 
-  mutate( name = ifelse(name == "more annuals",  'Allotments (n)', name )) %>% 
-  mutate( name = ifelse( name == "frac_more_annuals", '% of Allotments', name)) %>% 
-  rename( "Ecoregion" = ecoregion_label, 
-          "Annual Dominated" = name) %>%
+  rename( "Ecoregion" = ecoregion_label) %>% 
   kableExtra::kbl(caption = 'Table A13: Allotments with annual cover greater than perennial cover by decade.') %>% 
   kableExtra::kable_classic_2(html_font = 'times new roman', font_size = 12) %>%  
   kableExtra::save_kable(file = 'output/tables/annual_cover_dominance_stats.html')
-
-
 
 # Annual Production ------------------------------------------- # 
 annual_prod_dominance_uname <- 
@@ -162,6 +180,27 @@ total_annual_prod_dominance <-
   group_by( ecoregion, decade , annual_dom ) %>% 
   summarise( n = n())
 
+
+annual_prod_dominance_area <- 
+  annual_prod_dominance_uname %>% 
+  left_join(allotments %>% select( uname, hectares ), by = 'uname') %>% 
+  group_by( decade, ecoregion, annual_dom ) %>%
+  summarise( hectares = sum(hectares))  %>% 
+  group_by( decade, ecoregion ) %>%   
+  arrange( ecoregion, decade ) %>% 
+  ungroup() %>% 
+  mutate( Dominance = factor(annual_dom, labels = c('more perennials', 'more annuals'))) %>% 
+  select( decade, ecoregion, Dominance , hectares) %>%
+  filter( Dominance == 'more annuals') 
+
+total_annual_prod_dominance_area <- 
+  annual_prod_dominance_area %>% 
+  filter( ecoregion != 'Marine West Coast Forests') %>%
+  ungroup() %>% 
+  mutate( ecoregion = 'Total') %>%
+  group_by( ecoregion, decade , Dominance ) %>% 
+  summarise( hectares = sum(hectares))
+
 annual_prod_dominance_ecoregion <- 
   annual_prod_dominance_uname %>% 
   group_by( decade, ecoregion, annual_dom ) %>%
@@ -177,7 +216,41 @@ annual_prod_dominance_ecoregion <-
   arrange( ecoregion, decade ) %>%
   mutate( n_total = `more perennials` + `more annuals`) %>% 
   mutate( frac_more_perennials = `more perennials`/n_total ) %>% 
-  mutate( frac_more_annuals = `more annuals`/n_total )
+  mutate( frac_more_annuals = `more annuals`/n_total )    %>% 
+  select( decade, ecoregion, n_total, `more annuals`, frac_more_annuals )
+
+annual_prod_dominance_ecoregion_table <- 
+  annual_prod_dominance_ecoregion %>% 
+  filter( ecoregion != 'Marine West Coast Forest') %>% 
+  arrange( ecoregion, decade ) %>%
+  left_join( 
+    bind_rows(annual_prod_dominance_area, 
+              total_annual_prod_dominance_area) %>% select( - Dominance) ) %>%   
+  mutate( hectares = replace_na(hectares, 0)) %>% 
+  select( decade, ecoregion, `more annuals`, n_total, frac_more_annuals, hectares) %>% 
+  mutate( frac_more_annuals = paste0( round( 100*frac_more_annuals), '%'), 
+          `Total area (1x10^3 ha)` = as.character( round( `hectares`/1e3, 2) )) %>% 
+  mutate( `more annuals`  = as.character( `more annuals`)) %>% 
+  mutate( ecoregion_label = paste0( ecoregion, ' (', n_total, ')')) %>%  
+  select( - hectares) %>%  
+  pivot_longer(cols = c(`more annuals` , frac_more_annuals, `Total area (1x10^3 ha)`))
+
+annual_prod_dominance_ecoregion_table %>% 
+  pivot_wider( names_from = name , values_from = value) %>% 
+  mutate( new_val = paste0( `more annuals`, ' (', frac_more_annuals, ')')) %>% 
+  select( ecoregion_label, decade, new_val, `Total area (1x10^3 ha)`) %>% 
+  pivot_longer( cols = c( `new_val`:`Total area (1x10^3 ha)` )) %>% 
+  unite( 'newName' , c(name, decade)) %>% 
+  pivot_wider( names_from = newName, values_from = value ) %>%  
+  select( ecoregion_label, contains( 'new_val'), contains('area')) %>% 
+  mutate( ecoregion_label = factor(ecoregion_label)) %>%  
+  mutate( ecoregion_label = factor( ecoregion_label, levels = level_order, ordered = T)) %>%   
+  arrange( ecoregion_label) %>% 
+  rename( "Ecoregion" = ecoregion_label) %>% 
+  kableExtra::kbl(caption = 'Table A14: Allotments with annual production greater than perennial production by decade.') %>% 
+  kableExtra::kable_classic_2(html_font = 'times new roman', font_size = 12) %>%  
+  kableExtra::save_kable(file = 'output/tables/annual_production_dominance_stats.html')
+
 
 letter_lab <- 
   expand.grid( decade = '1980s', perc_more_annuals = 105, 

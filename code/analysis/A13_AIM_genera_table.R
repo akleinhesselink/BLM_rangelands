@@ -9,6 +9,11 @@ AIM <- read_csv('data/temp/AIM_species_by_allotment.csv') %>%
   rename('ecoregion' = ecoregn)
 speciesState <- read_csv('data/temp/clean_speciesState_table.csv')
 
+# fix Juniperus communis 
+speciesState <- 
+  speciesState %>% 
+  mutate( GrowthHabitSub = ifelse( str_detect(SpeciesCode, 'JUCO') & GrowthHabit == 'WOODY' , "SHRUB", GrowthHabitSub))
+
 AIM_ecoregion <- 
     data.frame( ecoregion = c( 'AZ/NM Highlands', 
                               'E Cold Deserts', 
@@ -42,6 +47,11 @@ AIM_trees <- AIM %>%
   mutate( GrowthHabitSub = ifelse( genus == 'Prosopis', 'TREE',  GrowthHabitSub)) %>% 
   filter( GrowthHabitSub == 'TREE') %>% 
   left_join(ecoregion_n)
+
+AIM %>% 
+  ungroup() %>% 
+  filter( str_detect( ScientificName, "Juniperus communis" )) %>% 
+  distinct( ecoregion, Species, shrub, tree, SCIENTIFIC, GrowthHabit, GrowthHabitSub)
 
 genus_level <- AIM_trees %>% 
   group_by( ecoregion, genus , n_allots_total) %>%
