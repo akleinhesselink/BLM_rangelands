@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:bb78b54d2fdfb3679214559d74144289e75007c283676db7289998e9c59f5cae
-size 2677
+ecoregion,genus,genus_freq,avg_cover,Species
+AZ/NM Highlands (111),Prosopis,0.59,6.6,"P. glandulosa (35), P. velutina (33), P. L (5), P. juliflora (3)"
+AZ/NM Highlands (111),Juniperus,0.49,8.17,"J. monosperma (44), J. deppeana (9), J. osteosperma (6), J. arizonica (4), J. scopulorum (3), J. pinchotii (1)"
+AZ/NM Highlands (111),Pinus,0.19,15.46,"P. edulis (19), P. scopulorum (4), P. monophylla (2)"
+E Cold Deserts (1868),Juniperus,0.48,11.3,"J. osteosperma (656), J. scopulorum (205), J. monosperma (164), J. L (9), J. deppeana (6)"
+E Cold Deserts (1868),Pinus,0.39,12.13,"P. edulis (396), P. discolor (220), P. flexilis (82), P. ponderosa (58), P. monophylla (30), P. contorta (18)"
+E Cold Deserts (1868),Populus,0.04,25.03,"P. tremuloides (66), P. deltoides (8), P. fremontii (7), P. angustifolia (1), P. balsamifera (1)"
+Forested Mts (1201),Juniperus,0.39,10.72,"J. scopulorum (239), J. occidentalis (175), J. osteosperma (105), J. NA (7)"
+Forested Mts (1201),Pinus,0.27,14.97,"P. ponderosa (196), P. flexilis (97), P. contorta (54), P. albicaulis (9), P. monophylla (9), P. NA (2)"
+Forested Mts (1201),Amelanchier,0.21,8.74,"A. alnifolia (186), A. utahensis (72), A. NA (21)"
+Mediterranean California (11),Quercus,0.18,14.85,Q. douglasii (2)
+Mediterranean California (11),Adenostoma,0.09,30.69,A. sparsifolium (1)
+Mediterranean California (11),Cercocarpus,0.09,3.96,C. montanus (1)
+N Great Plains (1267),Juniperus,0.19,11.4,"J. scopulorum (231), J. osteosperma (3), J. virginiana (3)"
+N Great Plains (1267),Pinus,0.14,10.85,"P. ponderosa (167), P. flexilis (15), P. contorta (3), P. species (3)"
+N Great Plains (1267),Pseudotsuga,0.02,13.32,P. menziesii (24)
+S Great Plains (70),Prosopis,0.33,7.08,"P. glandulosa (20), P. NA (3)"
+S Great Plains (70),Juniperus,0.31,9.78,"J. monosperma (21), J. scopulorum (6)"
+S Great Plains (70),Pinus,0.2,11.92,"P. edulis (13), P. ponderosa (2), P. scopulorum (1)"
+W Cold Deserts (1729),Juniperus,0.4,10.51,"J. osteosperma (483), J. occidentalis (242), J. scopulorum (47), J. NA (37)"
+W Cold Deserts (1729),Pinus,0.17,12.98,"P. monophylla (260), P. ponderosa (24), P. flexilis (8), P. jeffreyi (4), P. contorta (2), P. edulis (2), P. NA (2), P. longaeva (1), P. monticola (1)"
+W Cold Deserts (1729),Amelanchier,0.1,3.67,"A. utahensis (165), A. alnifolia (2), A. pallida (1)"
+Warm Deserts (487),Prosopis,0.57,6.94,"P. glandulosa (242), P. velutina (31), P. L (20), P. juliflora (2)"
+Warm Deserts (487),Parkinsonia,0.18,7.41,"P. microphylla (66), P. florida (32), P. L (26)"
+Warm Deserts (487),Juniperus,0.17,5.32,"J. monosperma (47), J. pinchotii (15), J. osteosperma (14), J. deppeana (7), J. arizonica (6), J. L (4)"
