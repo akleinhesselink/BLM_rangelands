@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:a41047c40b2ed7c3456a2056b209ec3f261359745d5e7cff9cd1ac0fa176573d
-size 1579
+scale,pair,model_scale,n,corResPearson,p.val,r,significant
+ecoregion,Annual_Bare,Allotment,8,,0.0038439179679400927,-0.8810205180866381,*
+ecoregion:OFFICE,Annual_Bare,Allotment,198,,1.1153525710217787e-9,-0.4158057234676554,*
+uname,Annual_Bare,Allotment,18798,,1.6889614847542637e-162,-0.1962150022572122,*
+ecoregion,Annual_Perennial,Allotment,8,,0.419304587235229,0.33363613906698547,n.s.
+ecoregion:OFFICE,Annual_Perennial,Allotment,198,,2.5120951724354716e-4,0.2574093629727235,*
+uname,Annual_Perennial,Allotment,18788,,8.526059195425176e-59,0.11755120207949991,*
+ecoregion,Annual_Shrub,Allotment,8,,0.6904699491726749,-0.1682298234626866,n.s.
+ecoregion:OFFICE,Annual_Shrub,Allotment,198,,0.09855347554356153,-0.11773272578511064,n.s.
+uname,Annual_Shrub,Allotment,18822,,5.4669486593858605e-27,-0.07829562321350626,*
+ecoregion,Bare_Perennial,Allotment,8,,0.09450319607511766,-0.6293983799476703,n.s.
+ecoregion:OFFICE,Bare_Perennial,Allotment,198,,6.266014755471919e-4,-0.2409711773967438,*
+uname,Bare_Perennial,Allotment,20812,,2.5672259647003857e-58,-0.11125858585845147,*
+ecoregion,Bare_Shrub,Allotment,8,,0.3416718295030694,0.38840257996459643,n.s.
+ecoregion:OFFICE,Bare_Shrub,Allotment,198,,8.251559336163082e-4,0.23579585387545923,*
+uname,Bare_Shrub,Allotment,20841,,7.696348032915444e-145,0.1761352367998499,*
+ecoregion,Perennial_Shrub,Allotment,8,,0.16429767337417828,-0.5430040287433443,n.s.
+ecoregion:OFFICE,Perennial_Shrub,Allotment,198,,5.12184638732808e-4,-0.24469298570979225,*
+uname,Perennial_Shrub,Allotment,20902,,0.19599738228322944,-0.008944069663670654,n.s.

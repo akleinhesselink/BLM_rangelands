@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:93f5c763df37da11f3ff3cd82d584544e45948d60cd575eb97553d5c6aa33542
-size 886
+ecoregion,increase_new,decrease_new,no_change_new,hectares_of_increasing_allotments,hectares_of_decreasing_allotments,hectares_of_not_signif_allotments
+AZ/NM Highlands,5% (28/562),14% (76/562),81% (458/562),50805,373186,2074401
+E Cold Deserts,55% (2519/4574),3% (149/4574),42% (1906/4574),14170769,471649,8557445
+Forested Mts,60% (3041/5086),5% (260/5086),35% (1785/5086),5215858,472678,2568456
+Mediterranean California,9% (20/232),18% (41/232),74% (171/232),3301,59071,365072
+N Great Plains,65% (3314/5066),2% (91/5066),33% (1661/5066),8175022,193535,3456050
+S Great Plains,29% (247/838),5% (42/838),66% (549/838),258494,128155,2121858
+W Cold Deserts,51% (1777/3470),7% (246/3470),42% (1447/3470),16028962,3712922,14997506
+Warm Deserts,6% (67/1171),9% (104/1171),85% (1000/1171),440797,1449389,9017288
+TOTAL,52% (11013/20999),5% (1009/20999),43% (8977/20999),44344008,6860585,43158076

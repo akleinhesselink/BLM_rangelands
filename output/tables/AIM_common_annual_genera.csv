@@ -1,3 +1,25 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:57f1339ad4eecb8c570b584bc8f5de09326ed069b1bfafefe0308e96ad081c7e
-size 3949
+ecoregion,genus,exoticUS,genus_frequency,avg_cover,spp
+AZ/NM Highlands (111),Descurainia,FALSE,0.43,2.66,"D. pinnata (41), D. incana (3), D. obtusa (3), D. Webb (3), D. californica (1), D. incisa (1)"
+AZ/NM Highlands (111),Plantago,FALSE,0.37,2.43,"P. patagonica Jacq.  (34), P. ovata (7), P. helleri (2), P. NA (2)"
+AZ/NM Highlands (111),Chamaesyce,FALSE,0.32,1.01,"C. serpyllifolia (10), C. glyptosperma (6), C. Gray (6), C. hyssopifolia (6), C. revoluta (5), C. serrula (5), C. florida (4), C. maculata (4), C. micromera (2), C. hypericifolia (1), C. polycarpa (1), C. prostrata (1), C. setiloba (1), C. stictospora (1)"
+E Cold Deserts (1868),Bromus,TRUE,0.65,12.33,"B. tectorum (1185), B. arvensis (225), B. rubens (46), B. briziformis Fisch. (9), B. racemosus (7), B. squarrosus (7), B. diandrus (2), B. hordeaceus (2), B. catharticus (1)"
+E Cold Deserts (1868),Descurainia,FALSE,0.5,2.33,"D. pinnata (821), D. spp. (129), D. incana (67), D. incisa (38), D. californica (15), D. obtusa (9), D. pinnata (Walter) (1)"
+E Cold Deserts (1868),Alyssum,TRUE,0.41,4.98,"A. desertorum (625), A. alyssoides (198), A. simplex (107), A. L. (41)"
+Forested Mts (1201),Bromus,TRUE,0.52,11.25,"B. tectorum (604), B. arvensis (139), B. hordeaceus (62), B. briziformis (51), B. squarrosus (25), B. rubens (12), B. diandrus (10), B. racemosus (2), B. secalinus (1)"
+Forested Mts (1201),Tragopogon,TRUE,0.45,1.13,"T. dubius (521), T. porrifolius (14), T. NA (7)"
+Forested Mts (1201),Collinsia,FALSE,0.26,2.71,"C. parviflora (301), C. grandiflora (22), C. NA (15)"
+Mediterranean California (11),Bromus,TRUE,1,16.9,"B. rubens (10), B. hordeaceus (4), B. diandrus (3), B. tectorum (2), B. madritensis (1)"
+Mediterranean California (11),Amsinckia,FALSE,0.55,4.36,"A. Lehm. (4), A. tessellata (2), A. menziesii (1)"
+Mediterranean California (11),Erodium,TRUE,0.55,16.9,E. cicutarium (6)
+N Great Plains (1267),Bromus,TRUE,0.85,15.44,"B. arvensis (987), B. tectorum (633), B. squarrosus (8), B. catharticus Vahl  (6), B. racemosus (4), B. briziformis (1), B. hordeaceus (1)"
+N Great Plains (1267),Tragopogon,TRUE,0.85,1.2,"T. dubius (1004), T. species (105), T. porrifolius (11)"
+N Great Plains (1267),Plantago,FALSE,0.58,2.98,"P. patagonica (727), P. elongata (41), P. erecta (9), P. aristata (2), P. pusilla (1)"
+S Great Plains (70),Chenopodium,FALSE,0.3,1.44,"C. album (10), C. incanum (4), C. cycloides (3), C. leptophyllum (3), C. watsonii (2), C. NA (2), C. atrovirens (1), C. berlandieri (1), C. neomexicanum (1), C. pratericola (1)"
+S Great Plains (70),Eriogonum,FALSE,0.29,1.59,"E. annuum (16), E. abertianum (2), E. cernuum (2)"
+S Great Plains (70),Chamaesyce,FALSE,0.23,0.89,"C. serpyllifolia (5), C. micromera (4), C. prostrata (4), C. maculata (2), C. glyptosperma (1), C. hyssopifolia (1), C. parryi (1), C. serpens (1), C. serrula (1), C. NA (1)"
+W Cold Deserts (1729),Bromus,TRUE,0.94,19.14,"B. tectorum (1615), B. arvensis (267), B. hordeaceus (122), B. rubens (74), B. briziformis (58), B. madritensis (15), B. secalinus (15), B. arenarius (14), B. racemosus (4), B. berteroanus (3), B. diandrus (3)"
+W Cold Deserts (1729),Sisymbrium,TRUE,0.54,4.74,"S. altissimum (926), S. loeselii (15), S. irio (1), S. officinale (1), S. orientale (1)"
+W Cold Deserts (1729),Descurainia,FALSE,0.53,2.71,"D. pinnata (854), D. NA (197), D. incana (76), D. paradisa (15), D. californica (4), D. obtusa (1)"
+Warm Deserts (487),Plantago,FALSE,0.45,4.67,"P. patagonica Jacq.  (135), P. ovata (75), P. NA (24), P. helleri (22), P. argyrea (3)"
+Warm Deserts (487),Descurainia,FALSE,0.43,1.63,"D. pinnata (194), D. Webb (12), D. obtusa (6), D. incana (4), D. californica (1)"
+Warm Deserts (487),Eriogonum,FALSE,0.37,2.34,"E. abertianum (88), E. trichopes (59), E. deflexum (39), E. annuum (26), E. rotundifolium (26), E. cernuum (4), E. palmerianum (4), E. thomasii (4), E. divaricatum (3), E. polycladon (2), E. aliquantum (1), E. foliosum (1), E. pharnaceoides (1)"
