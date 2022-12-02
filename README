@@ -2,7 +2,8 @@
 
 This R project contains R code for recreating the analysis reported in 
 "Long-Term Trends in Vegetation on Bureau of Land Management Rangelands in the 
-Western United States" for publication in Rangeland Ecology and Management.  
+Western United States" for publication in Rangeland Ecology and Management 
+(doi: 10.1016/j.rama.2022.11.004).   
 
 The data required for these analysis come from a variety of public sources. The 
 spatial data required for the analysis including the BLM allotment boundaries can 
