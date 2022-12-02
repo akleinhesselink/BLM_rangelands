@@ -67,6 +67,22 @@ cover <-
   group_by( type, unit ) %>% 
     split(f = .$type ) 
 
+cover0.01 <- 
+  annual_data %>%  
+  filter( unit == 'cover') %>% 
+  filter( !is.na(value)) %>% 
+  mutate( value = value + 0.01 ) %>% 
+  group_by( type, uname) %>% 
+  filter( n() == 30 ) %>% 
+  ungroup() %>% 
+  left_join( allotments) %>% 
+  filter( !is.na(ecoregion ) ) %>% 
+  group_by( ecoregion, OFFICE, unit, type) %>% 
+  filter( n_distinct(uname) > 1 ) %>% 
+  ungroup() %>% 
+  group_by( type, unit ) %>% 
+  split(f = .$type ) 
+
 cover <- cover %>% lapply( 
   function(x) { 
     x %>% mutate( 
@@ -75,10 +91,18 @@ cover <- cover %>% lapply(
       mutate( year2 = scale(year), 
               hectares2 = scale(hectares, center = F)) }) 
 
+cover0.01<- cover0.01  %>% lapply( 
+  function(x) { 
+    x %>% mutate( 
+      log_value = log(value), 
+      value2 = scale(log(value))) %>%
+      mutate( year2 = scale(year), 
+              hectares2 = scale(hectares, center = F)) }) 
+
 save(cover, file = 'data/analysis_data/cover.rda')
+save(cover0.01, file = 'data/analysis_data/cover01.rda')
 
-rm(cover) 
-
+rm(cover, cover0.01) 
 
 prod <- annual_data %>% 
   filter( unit == 'production') %>% 
@@ -87,6 +111,20 @@ prod <- annual_data %>%
   group_by( type, uname) %>% 
   filter( n() == 30 ) %>% 
   filter( min(value, na.rm = T) > 0.25 ) %>%
+  ungroup() %>% 
+  left_join( allotments) %>% 
+  filter( !is.na(ecoregion)) %>%
+  group_by( ecoregion, OFFICE, unit, type) %>% 
+  filter( n_distinct(uname) > 1 ) %>% 
+  ungroup() %>% 
+  split(f = .$type ) 
+
+prod0.01 <- annual_data %>% 
+  filter( unit == 'production') %>% 
+  filter( !is.na(value)) %>% 
+  mutate( value = value + 0.01) %>% 
+  group_by( type, uname) %>% 
+  filter( n() == 30 ) %>% 
   ungroup() %>% 
   left_join( allotments) %>% 
   filter( !is.na(ecoregion)) %>%
@@ -105,6 +143,19 @@ prod <-
               hectares2 = scale(hectares, center = F ))
   }) 
 
+prod0.01 <- 
+  prod0.01 %>% 
+  lapply( function(x){ 
+    x %>% 
+      mutate( value2 = scale(log(value)), 
+              log_value = log(value)) %>% 
+      mutate( year2 = scale(year), 
+              hectares2 = scale(hectares, center = F ))
+  }) 
+
 save(prod, file = 'data/analysis_data/prod.rda')
 
-rm(prod, allotments)
+save(prod0.01, file = 'data/analysis_data/prod01.rda')
+
+
+rm(prod, prod0.01, allotments)
