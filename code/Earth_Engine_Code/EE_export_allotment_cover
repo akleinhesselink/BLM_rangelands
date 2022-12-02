@@ -1,0 +1,105 @@
+// This script calculates average cover estimates for each BLM allotment 
+// in each year from the RAP data and then exports the results as a CSV file to 
+// Google Drive for further analysis in R. The resulting CSV file is to be 
+// processed by the "code/build_db/process_annual_data.R" script. 
+
+// Imports
+
+var geometry = 
+    /* color: #d63000 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[-115.98309029318052, 49.18987345338916],
+          [-115.98309029318052, 42.94948930351971],
+          [-99.15203560568052, 42.94948930351971],
+          [-99.15203560568052, 49.18987345338916]]], null, false),
+    table = ee.FeatureCollection("users/andykleinhesselink/blm_allotments"),
+    cover3 = ee.ImageCollection("projects/rangeland-analysis-platform/vegetation-cover-v3"),
+    nassMask = ee.ImageCollection("USDA/NASS/CDL"),
+    nlcdMask = ee.ImageCollection("USGS/NLCD_RELEASES/2016_REL");
+
+// 
+
+
+nassMask = nassMask
+  .filterDate('2013-01-01','2020-01-01')
+  .map(function(image){
+    return( 
+      image.select('cultivated').eq(2)
+      );
+  }).sum().eq(0);
+  
+nlcdMask = nlcdMask
+  .filterDate('2016')
+  //.filter(ee.Filter.eq('id', 'USGS/NLCD_RELEASES/2016_REL/2016'))
+  .select(0)
+  .map(function(image) {
+    return( 
+      image.remap(
+        [12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 81, 90, 95],
+        [1,   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1]
+        )
+      ); 
+  }).first().eq(1).unmask();
+
+cover3 = cover3.filterDate('1986-01-01','2022-01-01')
+  .map(function(image){ return image.float() });
+
+cover3 = cover3.map( function( image ) { 
+  return(
+    image.updateMask(nassMask).updateMask(nlcdMask)
+    ); 
+}); 
+
+table = table.select('uname'); 
+
+
+var myPropsV3 = ee.List( ['uname',
+  'year', 
+  'AFG', 
+  'BGR', 
+  'LTR', 
+  'PFG',
+  'SHR',
+  'TRE']); 
+
+function reduceFunByAllotment(TABLE, image, fun ){ 
+    return image.reduceRegions({ 
+      collection: TABLE, 
+      reducer: fun, 
+      scale: 30,
+      tileScale: 2
+    }).map( function ( feature ){ 
+      return feature.set( { year: image.get('year')})
+    })
+}
+
+function getProps(feature){ 
+  return ee.Feature( null, feature.toDictionary( myPropsV3 ))
+}
+
+function mapPropsToFeatures(f){ 
+    return ee.FeatureCollection(f).map(getProps)
+}
+
+function meanByAllotment(image){  
+  return reduceFunByAllotment(table, image, ee.Reducer.mean())
+}
+
+Export.table.toDrive({ 
+  collection: cover3.map(meanByAllotment)
+                    .map(mapPropsToFeatures).flatten(),
+  description: 'Cover_by_year_to_Drive_V3', 
+  folder: 'RAP_EE_exports',
+  fileNamePrefix: 'allotment_cover_by_year_V3',
+  fileFormat: 'csv',
+});
+
+
+
+

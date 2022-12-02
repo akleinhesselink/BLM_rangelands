@@ -1,0 +1,28 @@
+
+
+This R project contains R code for recreating the analysis reported in 
+"Long-Term Trends in Vegetation on Bureau of Land Management Rangelands in the 
+Western United States" for publication in Rangeland Ecology and Management.  
+
+The data required for these analysis come from a variety of public sources. The 
+spatial data required for the analysis including the BLM allotment boundaries can 
+be retrieved from the sources listed in Appendix A Table A1 in the online 
+supporting materials.  BLM allotment boundaries were further processed in QGIS 
+prior to analysis.  Please refer to the QGIS processing steps found in the
+"code/build_db/QGIS_cleaning_steps.txt" file. A cleaned BLM allotment shapefile 
+is available as an Earth Engine asset here (https://code.earthengine.google.com/?asset=users/andykleinhesselink/blm_allotments). 
+
+The ownership, cover and production data are extracted using Google Earth Engine 
+(https://earthengine.google.com/). Scripts required for extracting these data 
+are available in the "code/Earth_Engine_Code" folder within this project. Once 
+the ownership, cover and production data have been extracted on Google EE and 
+downloaded to a local machine, the data can be processed in R by running the 
+scripts found in the "code/build_db" folder. Refer to the "setup.R" script for 
+more information.  
+
+Once all the data has been processed run the analysis scripts found in the 
+"code/analysis" folder. A step by step list of analysis scripts can be found in 
+the "code/analysis/run_analysis.R" script.
+
+Author: Andrew R. Kleinhesselink 
+Date: 12/01/2022

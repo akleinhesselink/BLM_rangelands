@@ -1,0 +1,137 @@
+// This Script samples cover and production values from individual pixels within 
+// BLM allotments and then exports the results as a CSV file to Google Drive which 
+// is then downloaded to a local machine for analysis in R. The resulting CSV file 
+// is read in by the "code/analysis/A9_multiscale_trend_variance_model.R" script. 
+
+// Imports 
+var table = ee.FeatureCollection("users/andykleinhesselink/blm_allotments"),
+    coverViz = {"min":0,"max":50,"opacity":0.5,"palette":["blue","red"]},
+    ecol3 = ee.FeatureCollection("EPA/Ecoregions/2013/L3"),
+    nassMask = ee.ImageCollection("USDA/NASS/CDL"),
+    nlcdMask = ee.ImageCollection("USGS/NLCD_RELEASES/2016_REL"),
+    cover = ee.ImageCollection("projects/rangeland-analysis-platform/vegetation-cover-v3"),
+    prod = ee.ImageCollection("projects/rangeland-analysis-platform/npp-partitioned-v3"),
+    geometry = 
+    /* color: #98ff00 */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[-125.14485119087975, 49.527578549109826],
+          [-125.14485119087975, 31.093701048491962],
+          [-96.93196056587976, 31.093701048491962],
+          [-96.93196056587976, 49.527578549109826]]], null, false);
+          
+// 
+
+nassMask = nassMask
+  .filterDate('2013-01-01','2020-01-01')
+  .map(function(image){
+    return( 
+      image.select('cultivated').eq(2)
+      );
+  }).sum().eq(0);
+  
+nlcdMask = nlcdMask
+  .filterDate('2016')
+  //.filter(ee.Filter.eq('id', 'USGS/NLCD_RELEASES/2016_REL/2016'))
+  .select(0)
+  .map(function(image) {
+    return( 
+      image.remap(
+        [12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 81, 90, 95],
+        [1,   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1]
+        )
+      ); 
+  }).first().eq(1).unmask();
+
+cover = cover.filterDate('1991-01-01','2021-01-01')
+    .map(function(image){ 
+      return( 
+        image
+          .updateMask(nassMask)
+          .updateMask(nlcdMask)
+      )
+    });
+
+prod = prod.filterDate('1991-01-01','2021-01-01')
+    .map(function(image){ 
+      return( 
+        image
+          .updateMask(nassMask)
+          .updateMask(nlcdMask)
+      )
+    });
+
+
+var table_subSample = table
+  .randomColumn({'seed': 2})
+  .filter(ee.Filter.lt("random", 0.05)); 
+
+print( table.size() ); 
+print(table_subSample.size()); 
+
+var allotmentImg_subSample = table_subSample
+  .filter(ee.Filter.notNull(['uname']))
+  .reduceToImage({
+    properties: ['uname'],
+    reducer: ee.Reducer.first()
+});
+
+allotmentImg_subSample = allotmentImg_subSample.rename('uname').toInt(); 
+
+var unameViz = {"min":1,"max":100,"opacity":0.5,"palette":["blue","red"]};
+
+// Combine into a single RAP vegetation collection.
+var rapVeg = cover.combine(prod)
+  .map(function(image){ 
+  return(
+    image.addBands(allotmentImg_subSample) )
+});
+
+var points = ee.FeatureCollection( 
+  table_subSample.map( function( feature ) { 
+    return( 
+      ee.FeatureCollection.randomPoints
+      (
+        feature.geometry(), 16, 0, 1
+      ).set(
+        {"uname": feature.get('uname')}
+      )
+    )
+  })
+)
+
+points = points.flatten() 
+
+Export.table.toDrive({ 
+  collection: allotmentImg_subSample.reduceRegions( { 
+    collection: points, 
+    reducer: ee.Reducer.first(), 
+    scale: 30
+  }),
+  description: 'sample_point_uname_to_Drive6', 
+  folder: 'RAP_EE_exports',
+  fileNamePrefix: 'RAP_sample_points6',
+  fileFormat: 'csv'
+});
+
+Export.table.toDrive({ 
+  collection: 
+  rapVeg.map( function( image ) { 
+    return image
+    .reduceRegions(
+      { collection: points, 
+        reducer: ee.Reducer.first(),
+        scale: 30 
+      })}).flatten(),
+  description: 'RAP_samples_to_Drive6', 
+  folder: 'RAP_EE_exports',
+  fileNamePrefix: 'RAP_allotment_pixel_samples6',
+  fileFormat: 'csv',
+  selectors: "system:index,uname,AFG,BGR,PFG,SHR,TRE,afgNPP,pfgNPP" 
+});
+

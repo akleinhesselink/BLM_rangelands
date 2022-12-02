@@ -1,0 +1,156 @@
+
+// This script calculates land ownership statistics for BLM allotments considered
+// in the analysis.  These are subject to change and should not be used
+// for any purpose other than re-creating table 1 in the manuscript. 
+// Ownership summaries for each allotment are exported as a CSV file to 
+// Google Drive for further analysis in R. The resulting CSV file is to be 
+// processed by the "code/build_db/2_allotment_ownership_and_info.R" script. 
+
+// Imports
+
+var image = ee.Image("projects/rangeland-analysis-platform/PADUS/padusOwnership"),
+    table = ee.FeatureCollection("users/andykleinhesselink/blm_allotments"),
+    nassMask = ee.ImageCollection("USDA/NASS/CDL"),
+    nlcdMask = ee.ImageCollection("USGS/NLCD_RELEASES/2016_REL");
+
+// 
+// mask out non-rangelands 
+
+nassMask = nassMask
+  .filterDate('2013-01-01','2020-01-01')
+  .map(function(image){
+    return( 
+      image.select('cultivated').eq(2)
+      );
+  }).sum().eq(0);
+  
+
+nlcdMask = nlcdMask
+  .filterDate('2016')
+  //.filter(ee.Filter.eq('id', 'USGS/NLCD_RELEASES/2016_REL/2016'))
+  .select(0)
+  .map(function(image) {
+    return( 
+      image.remap(
+        [12, 31, 41, 42, 43, 51, 52, 71, 72, 73, 74, 81, 90, 95],
+        [1,   1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1]
+        )
+      ); 
+  }).first().eq(1).unmask();
+
+
+
+// 2: Joint
+// 3: State
+// 4: Native American
+// 5: Local
+// 6: Private
+// 7: Private Conservation
+// 8: Unknown
+
+// 10-100: Federal
+  // 10 - 19: U.S. Department of Agriculture
+    // 11: Forest Service
+    // 12: Farm Service Agency
+    // 13: NRCS
+    // 14: Farmers Home Administration
+  
+  // 20-29: U.S. Department of Interior
+    // 21: BLM
+    // 22: NPS
+    // 23: USFWS
+    // 24: Bureau of Reclamation
+    // 25: USGS
+      
+  // 30-39: U.S. Department of Defense
+    // 31: Army
+    // 32: Army Corps of Engineers
+    // 33: Air Force
+    // 34: National Guard
+    // 35: Coast Guard
+    // 36: Marine Corps
+    // 37: Navy
+    // 38: Defense Logistic Agency
+      
+  // 40-49: U.S. Department of Energy
+  
+  // 50-59: U.S. Department of Transportation
+    // 51: Federal Aviation Authority
+  
+  // 60-69: U.S. Department of Commerce
+    // 61: NOAA
+      
+  // 70-79: U.S. Department of Justice
+    // 71: Federal Bureau of Prisons
+    
+  // 80-89: U.S. Department of Veterans Affairs
+    //81: U.S. Veterans Administration
+    
+  // 90-99 Other Federal Land
+    // 91: General Services Administration
+    // 92: NASA
+    // 93: National Trust for Historic Preservation
+    // 94: Smithsonian
+    // 95: National Archives and Records Adminstration
+    // 96: Tennesse Valley Authority
+    // 97: U.S. Fire Administration
+      
+
+var palette = ['05450a', '086a10', '54a708', '78d203', '009900']
+ 
+table = table
+  .select('uname');
+
+// state, private, FS and BLM land
+var image = image.remap([11, 21, 3, 6, 7], [11, 21, 3, 6, 7], 2000)
+
+// Mask out non-rangelands 
+image = image
+  .updateMask(nassMask)
+  .updateMask(nlcdMask); 
+
+var calculateClassArea = function(feature) {
+    var areas = ee.Image.pixelArea().addBands(image)
+    .reduceRegion({
+      reducer: ee.Reducer.sum().group({
+      groupField: 1,
+      groupName: 'class',
+    }),
+    geometry: feature.geometry(),
+    scale: 30,
+    maxPixels: 1e10
+    })
+ 
+    var classAreas = ee.List(areas.get('groups'))
+    var classAreaLists = classAreas.map(function(item) {
+      var areaDict = ee.Dictionary(item)
+      var classNumber = ee.Number(
+        areaDict.get('class')).format()
+      var area = ee.Number(
+        areaDict.get('sum')).divide(1e4).float()
+      return ee.List([classNumber, area])
+    })
+ 
+    var result = ee.Dictionary(classAreaLists.flatten())
+    var uname = feature.get('uname')
+    return ee.Feature(
+      feature.geometry(),
+      result.set('uname', uname))
+}
+ 
+var allotmentAreas = table.map(calculateClassArea);
+
+var classes = ee.List([3,6,7,11,21, 2000]); 
+
+var outputFields = ee.List(
+    ['uname']).cat(classes).getInfo()
+
+Export.table.toDrive({
+    collection: allotmentAreas,
+    description: 'ownership_area_by_allotment',
+    folder: 'RAP_EE_exports',
+    fileNamePrefix: 'ownership_area_by_allotment',
+    fileFormat: 'CSV',
+    selectors: outputFields
+    })
+

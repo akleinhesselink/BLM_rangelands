@@ -1,0 +1,8 @@
+This folder contains Earth Engine scripts for extracting the remote sensing 
+data required for the analyses.  
+
+These Earth Engine scripts require access to the Rangeland Analysis Platform 
+cover and production data v.3. as well as access to the BLM grazing allotment 
+shapefile "blm_allotments" uploaded as an asset to Google Earth engine by 
+A. Kleinhesselink. Asset url: [https://code.earthengine.google.com/?asset=users/andykleinhesselink/blm_allotments]
+

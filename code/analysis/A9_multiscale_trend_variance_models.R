@@ -187,17 +187,14 @@ variance_analysis <- function( df, extraction_number){
     write_csv(paste0('output/tables/trend_variance_table', extraction_number, '.csv'))
 }
 
-df4 <- read_csv('data/RAP_EE_exports/drive-download-20220624T051641Z-001/RAP_allotment_pixel_samples4.csv') %>% 
+# Replace filename below with path to the export from the EE_pixel_sampling script
+# e.g. 'RAP_EE_exports/drive-download-20220624T051641Z-001/RAP_allotment_pixel_samples4.csv'
+pixel_level_samples_file <- "RAP_allotment_pixel_samples4.csv" 
+
+df4 <- read_csv(pixel_level_samples_file) %>% 
   separate( `system:index`, c('year', 'allot', 'rep') , sep = '_') %>% 
   left_join( read_csv('data/temp/allotment_info.csv'), by = 'uname')
 
-df4 %>% 
-  nrow() 
-  
-df4 %>% 
-  summarise( n_distinct(uname))
-
-df4 %>% head 
 variance_analysis(df4, extraction_number = 4)
 
 trend_variance_table <- read_csv('output/tables/trend_variance_table4.csv')
